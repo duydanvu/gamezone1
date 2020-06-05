@@ -154,6 +154,13 @@ class SystemController extends Controller
                 ->join('manager_user_authority','manager_user_authority.user_id','=','manager_user.id')
                 ->select('manager_user.id','manager_user.login','manager_user.email','manager_user_authority.authority_name')
                 ->get();
+        $acc_has_role = DB::table('manager_user_authority')->get();
+        foreach ($acc_has_role as $user){
+            $data_acc_role[] = $user->user_id;
+        }
+        $acc_not_role = DB::table('manager_user')
+                        ->whereNotIn('id',$data_acc_role)
+                        ->get();
         $user_id_sign_in = Auth::id();
         $role_use = DB::table('manager_user_authority')
             ->select('authority_name')
@@ -174,7 +181,7 @@ class SystemController extends Controller
         }else{
             $role_use_number = 0;
         }
-        return view('System.role_use_list')->with(['data'=>$data,'role_use_number'=>$role_use_number]);
+        return view('System.role_use_list')->with(['data'=>$data,'role_use_number'=>$role_use_number,'acc_not_role'=>$acc_not_role]);
     }
 
     public function updateRoleView($id){
@@ -206,14 +213,6 @@ class SystemController extends Controller
             ->select('manager_user.id','manager_user.login','manager_user.email','manager_user_authority.authority_name')
             ->where('id','=',$request['user_id'])
             ->get();
-
-        if(sizeof($data) == 2 && $request['roleAdmin'] != null && $request['roleUser'] != null ){
-            DB::table('manager_user_authority')->where('user_id','=',$request['user_id'])
-                ->update(['authority_name'=>$request['roleUser']]);
-            DB::table('manager_user_authority')->where('user_id','=',$request['user_id'])
-                ->update(['authority_name'=>$request['roleAdmin']]);
-
-        }
 
         if(sizeof($data) == 2 && ($request['roleAdmin'] == null || $request['roleUser'] == null) ){
             if ($request['roleAdmin'] == null && $request['roleUser'] != null){
@@ -268,6 +267,62 @@ class SystemController extends Controller
         return Redirect::back()->with($notification);
 
     }
+
+    public function addRoleView($id){
+        $data = DB::table('manager_user')->find($id);
+        return view('System.add_role_new')->with('data',$data);
+    }
+
+    public function addRoleViewInfor(Request $request){
+        if($request['roleAdmin'] != null && $request['roleUser'] != null){
+            DB::table('manager_user_authority')->insert([
+                'user_id' => $request['user_id'],
+                'authority_name'=>$request['roleAdmin'],
+            ]);
+            DB::table('manager_user_authority')->insert([
+                'user_id' => $request['user_id'],
+                'authority_name'=>$request['roleUser'],
+            ]);
+        }else{
+            if($request['roleAdmin'] != null && $request['roleUser'] == null){
+                DB::table('manager_user_authority')->insert([
+                    'user_id' => $request['user_id'],
+                    'authority_name'=>$request['roleAdmin'],
+                ]);
+            }elseif ($request['roleAdmin'] == null && $request['roleUser'] != null){
+                DB::table('manager_user_authority')->insert([
+                    'user_id' => $request['user_id'],
+                    'authority_name'=>$request['roleUser'],
+                ]);
+            }
+        }
+        $notification = array(
+            'message' => 'Thêm thông tin thành công!',
+            'alert-type' => 'success'
+        );
+        return Redirect::back()->with($notification);
+
+    }
+
+    public  function deleteRoleFromAdmin($id,$role){
+        $delete_role = DB::table('manager_user_authority')
+                        ->where('user_id','=',$id)
+                        ->where('authority_name','=',$role)
+                        ->delete();
+        if($data = 1){
+            $notification = array(
+                'message' => 'Xoá thông tin thành công!',
+                'alert-type' => 'success'
+            );
+        }else{
+            $notification = array(
+                'message' => 'Xóa thông tin không thành công!',
+                'alert-type' => 'success'
+            );
+        }
+        return Redirect::back()->with($notification);
+    }
+
 
 
 }

@@ -33,9 +33,9 @@
                     <form action="{{ url('cussv/upload_sub/po') }}" enctype="multipart/form-data" method="POST">
                         {{ csrf_field() }}
                         <p>Gói Cước :</p>
-                        <input type="radio" id="day" name="day" value="day">
+                        <input type="checkbox" id="day" name="day" value="day">
                         <label for="day">Gói Cước Ngày</label><br>
-                        <input type="radio" id="week" name="week" value="week">
+                        <input type="checkbox" id="week" name="week" value="week">
                         <label for="week">Gói Cước Tuần</label><br>
                         <input type="file" name="filesTest" required="true">
                         <p></p>
@@ -78,5 +78,9 @@
 @section('js')
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
+    <script type="text/javascript">
+        $('input[type="checkbox"]').on('change', function() {
+            $('input[type="checkbox"]').not(this).prop('checked', false);
+        });
+    </script>
 @stop

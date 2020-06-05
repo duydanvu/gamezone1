@@ -118,11 +118,11 @@
                                         </a>
                                     <a href="#" class="dropdown-item" data-remote="false" data-toggle="modal" data-target="#modal-change-password">
                                         <!-- Message Start -->
-                                        <div class="media">
-                                            <div class="media-body">
-                                                    <i class="fa fa-key"> Change Password</i>
-                                            </div>
-                                        </div>
+                                        {{--<div class="media">--}}
+                                            {{--<div class="media-body">--}}
+                                                    {{--<i class="fa fa-key"> Change Password</i>--}}
+                                            {{--</div>--}}
+                                        {{--</div>--}}
                                         <!-- Message End -->
                                     </a>
                                 </div>

@@ -217,34 +217,34 @@ return [
                 ],
             ],
         ],
-        [
-            'text'    => 'SMS',
-            'icon'    => 'fas fa-sms',
-            'submenu' => [
-                [
-                    'text' => 'SMS 1',
-                    'url'  => 'pool/listMember',
-                ],
-                [
-                    'text' => 'SMS 2',
-                    'url'  => 'pool/pool_action',
-                ],
-            ],
-        ],
-        [
-            'text'    => 'HỆ THỐNG',
-            'icon'    => 'fab fa-affiliatetheme',
-            'submenu' => [
-                [
-                    'text' => 'Hệ Thống 1',
-                    'url'  => 'request/listRequest',
-                ],
-                [
-                    'text' => 'Hệ Thống 2',
-                    'url'  => 'request/create_request',
-                ],
-            ],
-        ],
+//        [
+//            'text'    => 'SMS',
+//            'icon'    => 'fas fa-sms',
+//            'submenu' => [
+//                [
+//                    'text' => 'SMS 1',
+//                    'url'  => 'pool/listMember',
+//                ],
+//                [
+//                    'text' => 'SMS 2',
+//                    'url'  => 'pool/pool_action',
+//                ],
+//            ],
+//        ],
+//        [
+//            'text'    => 'HỆ THỐNG',
+//            'icon'    => 'fab fa-affiliatetheme',
+//            'submenu' => [
+//                [
+//                    'text' => 'Hệ Thống 1',
+//                    'url'  => 'request/listRequest',
+//                ],
+//                [
+//                    'text' => 'Hệ Thống 2',
+//                    'url'  => 'request/create_request',
+//                ],
+//            ],
+//        ],
         [
             'text'    => 'THỐNG KÊ BÁO CÁO',
             'icon'    => 'fas fa-clipboard-list',

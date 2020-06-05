@@ -61,34 +61,6 @@ class CustomAuthController extends Controller
             );
             return Redirect::back()->with($notification);
         }
-
-
-//        $result = DB::table('manager_user')
-//                ->select('login','email','last_name')
-//                ->where([
-//                    ['login','=',$request['login']],
-//                    ['password','=',$request['password']]
-//                ])->get();
-//        if(sizeof($result) > 0){
-//            foreach ($result as $rs){
-//                session ( [
-//                    'login' => $request->get( 'login' ) ,
-//                    'last_name' => $rs->last_name
-//                ] );
-//                $notification = array(
-//                    'message' => 'Hello '.$rs->last_name.'!',
-//                    'alert-type' => 'success'
-//                );
-//            }
-//            return view('welcome')->with($notification);
-//        }else
-//        {
-//            $notification = array(
-//                'message' => 'Login fail! Please re-check your name and password',
-//                'alert-type' => 'error'
-//            );
-//            return Redirect::back()->with($notification);
-//        }
     }
 
     public function logout()

@@ -53,7 +53,7 @@
                             <td>{{$value->sta_datetime}}</td>
                             <td>{{$value->expire_datetime}}</td>
                             <td>{{$value->end_datetime}}</td>
-                            <td><a  href="{{route('sub_unsub_update',['id'=> $value->id])}}" data-remote="false"
+                            <td><a  href="{{route('sub_unsub_update',['id'=> $value->id,'epiTime'=>$value->expire_datetime])}}" data-remote="false"
                                    data-toggle="modal" data-target="#modal-account-update">
                                     {{$value->request}}
                                 </a></td>

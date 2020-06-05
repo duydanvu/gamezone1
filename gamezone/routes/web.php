@@ -28,6 +28,9 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
     Route::get('admin/list_role/view','SystemController@viewRoleUse')->name('admin_list_role_use');
     Route::get('admin/list_role/update/{id}','SystemController@updateRoleView')->name('admin_list_update_role');
     Route::post('admin/list_role/update/post','SystemController@updateRoleViewInfor')->name('admin_role_update_post_user');
+    Route::get('admin/list_role/add/{id}','SystemController@addRoleView')->name('admin_add_role');
+    Route::post('admin/list_role/add/post','SystemController@addRoleViewInfor')->name('admin_role_add_new');
+    Route::get('admin/list_role/delete_role/{id}/{role}','SystemController@deleteRoleFromAdmin')->name('admin_delete_role');
 
     //report
     Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
@@ -66,7 +69,7 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
 
     Route::get('cussv/sub_unsub_acc','CustomerServiceController@subUnSubAcc')->name('cus_sv_sub_unsub_acc');
     Route::get('cussv/information_acc','CustomerServiceController@subUnSubAcc')->name('cus_sv_information_acc');
-    Route::get('cussv/sub_unsub/{id}','CustomerServiceController@subUnSubViewUpdate')->name('sub_unsub_update');
+    Route::get('cussv/sub_unsub/{id}/{epiTime}','CustomerServiceController@subUnSubViewUpdate')->name('sub_unsub_update');
     Route::post('cussv/sub_unsub/','CustomerServiceController@subUnSubUpdateRequest')->name('update_account_in_list');
 
     //KPI
