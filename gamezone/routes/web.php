@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+// route test api
+Route::get('/testAPI','APIController@testCurl')->name('test_api');
+Route::get('/testUserReg','APIController@userRegs')->name('test_user_reg');
+
+//route login,logout
 Route::get('/','Auth\CustomAuthController@showLoginForm')->name('login');
 Route::post('/','Auth\CustomAuthController@login')->name('login_process');
 Route::post('/logout','Auth\CustomAuthController@logout')->name('logout');
