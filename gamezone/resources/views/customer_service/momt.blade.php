@@ -61,7 +61,7 @@
                 <thead>
                 <tr>
                     <th style="width:10%;text-align: center" >Dịch Vụ</th>
-                    <th style="width:10%;text-align: center" >Đầu số</th>
+                    <th style="width:10%;text-align: center" >Điện Thoại</th>
                     <th style="width:15%;text-align: center" >Thời Gian Nhắn MO</th>
                     <th style="width:5%;text-align: center">MO</th>
                     <th style="width:15%;text-align: center">Thời Gian Gửi MT</th>
@@ -73,18 +73,33 @@
                 <tbody id="table_body">
                 @if ( count($momt) > 0)
                     @foreach($momt as $key => $value)
-                        <tr>
-                            <td>{{$value->username}}</td>
-                            <td>{{substr($value->isdn,0,4)}}</td>
-                            <td>{{$value->timerequest}}</td>
-                            <td>{{$value->command_code}}</td>
-                            <td>{{$value->timeaction}}</td>
-                            <td>{{$value->content}}</td>
-                            <td>{{$value->result}}</td>
-                            <td><a href="#" class="btn dropdown-item">
-                                    <i class="fas fa-edit"> Gửi lại</i>
-                                </a></td>
-                        </tr>
+                        @if(count($value->joinDTOS) > 0)
+                            @foreach($value->joinDTOS as $valueDtos)
+                                <tr>
+                                <td>{{$value->groupCode}}</td>
+                                <td>{{$value->isdn}}</td>
+                                <td>{{substr($value->dateReceiveRequest,-17,8)}}, {{substr($value->dateReceiveRequest,0,10)}} </td>
+                                <td>{{$value->commandCode}}</td>
+                                    <td>{{substr($valueDtos->timerequest,-17,8)}}, {{substr($valueDtos->timerequest,0,10)}}</td>
+                                    <td>{{$valueDtos->content}}</td>
+                                    <td>Thành Công</td>
+                                    <td><a href="#" class="btn dropdown-item">
+                                            <i class="fas fa-edit"> Gửi lại</i>
+                                        </a></td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                <td>{{$value->groupCode}}</td>
+                                <td>{{$value->isdn}}</td>
+                                <td>{{substr($value->dateReceiveRequest,-17,8)}}, {{substr($value->dateReceiveRequest,0,10)}} </td>
+                                <td>{{$value->commandCode}}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                </tr>
+                            @endif
                     @endforeach
                 @else
                     <td colspan="8" style="text-align: center">

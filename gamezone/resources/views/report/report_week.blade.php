@@ -10,8 +10,8 @@
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item "><a href="/">Home</a></li>
-                    <li class="breadcrumb-item "><a href="#">Chăm Sóc Khách Hàng</a></li>
-                    <li class="breadcrumb-item active">Giao Dịch Đăng Ký</li>
+                    <li class="breadcrumb-item "><a href="#">Report</a></li>
+                    <li class="breadcrumb-item active">Report Time</li>
                 </ol>
             </div>
         </div>
@@ -60,22 +60,51 @@
             <table id="example1" class="table table-bordered table-striped " style="width: 100%">
                 <thead>
                 <tr>
-                    <th style="width:10%;text-align: center" >STT</th>
-                    <th style="width:20%;text-align: center" >Phone</th>
-                    <th style="width:25%;text-align: center" >Ngày Giao Dịch</th>
-                    <th style="width:25%;text-align: center">Loại Giao Dịch</th>
-                    <th style="text-align: center">Gói Cước</th>
+                    <th style="width:10%" rowspan="2">Ngày</th>
+                    <th rowspan="2">Thuê Bao Đăng Ký Mới</th>
+                    <th colspan="2" style="text-align: center">Thuê Bao Hủy</th>
+                    <th rowspan="2">Thuê Bao PCS</th>
+                    <th rowspan="2">Thuê Bao Active</th>
+                    <th rowspan="2">Tỷ lệ trừ cước thành công(%)</th>
+                    <th colspan="2">Tổng thuê bao đăng ký</th>
+                    <th colspan="2">Gia hạn</th>
+                    <th colspan="4" style="text-align: center">Đăng Ký</th>
+                </tr>
+                <tr>
+                    <th>Hệ Thống Hủy</th>
+                    <th>Thuê Bao Tự Hủy</th>
+
+                    <th>Thành công</th>
+                    <th>Không thành công</th>
+
+                    <th>Thành công</th>
+                    <th>Không thành công</th>
+
+                    <th>SMS</th>
+                    <th>VASGATE</th>
+                    <th>WAP</th>
+                    <th>Tổng đăng ký</th>
                 </tr>
                 </thead>
                 <tbody id="table_body">
-                @if ( count($reg_tran) > 0)
-                    @foreach($reg_tran as $key => $value)
+                @if ( count($data) > 0)
+                    @foreach($data as $key => $value)
                         <tr>
-                            <td>{{$key+1}}</td>
-                            <td>{{$value->isdn}}</td>
-                            <td>{{substr($value->regDatetime,-9,8)}}, {{substr($value->regDatetime,0,10)}}  </td>
-                            <td>Đăng ký dịch vụ gói</td>
-                            <td>{{$value->packageCode}}</td>
+                            <td>{{$value->ngayBaoCao}}</td>
+                            <td>{{$value->thueBaoDKMoi}}</td>
+                            <td>{{$value->heThongHuy}}</td>
+                            <td>{{$value->tbTuHuy}}</td>
+                            <td>{{$value->thuebaoPSC}}</td>
+                            <td>{{$value->tongThueBaoActive}}</td>
+                            <td>{{round( $value->tyLeTruCuocThanhCong ,3) }} %</td>
+                            <td>{{$value->thueBaoDkThanhCong}}</td>
+                            <td>{{$value->thuebaoDKThatBai}}</td>
+                            <td>{{$value->giahanThanhCong}}</td>
+                            <td>{{$value->giahanThatBai}}</td>
+                            <td>{{$value->kenhSMS}}</td>
+                            <td>{{$value->kenhVASGATE}}</td>
+                            <td>{{$value->kenhWAP}}</td>
+                            <td>{{$value->tongDK}}</td>
                         </tr>
                     @endforeach
                 @else
@@ -121,7 +150,7 @@
                 });
                 $.ajax({
                     type:'POST',
-                    url:'{{route('search_date_time_regtran')}}',
+                    url:'{{route('search_date_time')}}',
                     data:dt,
                     success:function(resultData){
                         // // $('.effort').val(resultData);

@@ -3,58 +3,148 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 
 class CustomerServiceController extends Controller
 {
     public function regTransactions(){
-        $reg_tran = $this->getRegTransaction('cdr_201908');
+        $user_id_sign_in = Auth::id();
+        $name_use = DB::table('manager_user')->find($user_id_sign_in);
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+//        $reg_tran = $this->getRegTransaction('cdr_201908');
+        $reg_tran = $this->getRegTransaction($dateend,$datenow,"",$name_use->first_name);
         return view('customer_service.reg_transactions')->with('reg_tran',$reg_tran);
     }
-    public function getRegTransaction($time){
-        $reg_tran = DB::table($time)
-            -> select('isdn','reg_datetime','package_code')
-            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> get();
-        return $reg_tran;
+
+    public function  getRegTransaction($start,$end,$phone,$username){
+        $data = array(
+            "from" => $start,
+            "isdn" => $phone,
+            "status" => 0,
+            "to" => $end,
+            "username" => $username
+        );
+        $data_string = json_encode($data);
+
+        $curl = curl_init('http://192.168.100.4:9000/api/user-regs-search');
+
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
+        );
+
+        $result = curl_exec($curl);
+        $dd = json_decode($result);
+        curl_close($curl);
+        return $dd;
     }
+//    public function getRegTransaction($time){
+//        $reg_tran = DB::table($time)
+//            -> select('isdn','reg_datetime','package_code')
+//            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
+//            -> where('request','=','SUB')
+//            -> whereNotNull('reg_datetime')
+//            -> get();
+//        return $reg_tran;
+//    }
 
     public function unregTransactions(){
-        $unreg_tran = $this->getUnRegTransaction('cdr_201908');
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
+        $unreg_tran = $this->getUnRegTransaction($datestart,$datenow,"");
         return view('customer_service.unreg_transactions')->with('unreg_tran',$unreg_tran);
     }
 
-    public function getUnRegTransaction($time){
-        $unreg_tran = DB::table($time)
-            -> select('isdn','reg_datetime','package_code')
-            -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
-            -> where('request','=','UNSUB')
-            -> whereNotNull('reg_datetime')
-            -> get();
-        return $unreg_tran;
+    public function getUnRegTransaction($start,$end,$phone){
+        $user_id_sign_in = Auth::id();
+        $name_use = DB::table('manager_user')->find($user_id_sign_in);
+        $username = $name_use->first_name;
+        $data = array(
+            "from" => $start,
+            "isdn" => $phone,
+            "status" => 0,
+            "to" => $end,
+            "username" => $username
+        );
+        $data_string = json_encode($data);
+
+        $curl = curl_init('http://192.168.100.4:9000/api/user-cancels-search');
+
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
+        );
+
+        $result = curl_exec($curl);
+        $dd = json_decode($result);
+        curl_close($curl);
+        return $dd;
+//        $unreg_tran = DB::table($time)
+//            -> select('isdn','reg_datetime','package_code')
+//            -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
+//            -> where('request','=','UNSUB')
+//            -> whereNotNull('reg_datetime')
+//            -> get();
+//        return $unreg_tran;
     }
 
     public function moMt(){
-        $momt = $this -> getMOMT('mtobj_201908');
-        foreach ($momt as $value){
-            if($value->timeaction == null){
-                $value->result = "Không thành công";
-            }else{
-                $value->result = "Thành công";
-            }
-        }
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
+        $momt = $this -> getMOMT($datenow,$datenow,"");
         return view('customer_service.momt')->with('momt',$momt);
     }
 
-    public function getMOMT($time){
-        $momt = DB::table($time)
-            -> select('username','isdn','timerequest','command_code','timeaction','content')
-            -> addSelect(DB::raw("'null' as result"))
-            -> get();
-        return $momt;
+    public function getMOMT($start,$end,$phone){
+        $user_id_sign_in = Auth::id();
+        $name_use = DB::table('manager_user')->find($user_id_sign_in);
+        $username = $name_use->first_name;
+        $data = array(
+            "from" => $start,
+            "isdn" => $phone,
+            "status" => 0,
+            "to" => $end,
+            "username" => $username
+        );
+        $data_string = json_encode($data);
+
+        $curl = curl_init('http://192.168.100.4:9000/api/mt-objects-search');
+
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
+        );
+
+        $result = curl_exec($curl);
+        $dd = json_decode($result);
+        curl_close($curl);
+        return $dd;
+//        $momt = DB::table($time)
+//            -> select('username','isdn','timerequest','command_code','timeaction','content')
+//            -> addSelect(DB::raw("'null' as result"))
+//            -> get();
+//        return $momt;
     }
 
     public function historyAccount(){
@@ -241,38 +331,42 @@ class CustomerServiceController extends Controller
         return Redirect::back()->with($notification);
     }
 
+
+    // Ajax search data User - Reg
     public  function  SearchDateTimeRegTran(Request $request){
         $startEnd = $request->startEnd;
         $date_range = explode( ' - ',$startEnd);
         $start = date("Y-m-d", strtotime($date_range[0]));
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
-
-        $reg_tran = $this->getSearchRegTran('cdr_201908',$start,$end);
+        $user_id_sign_in = Auth::id();
+        $name_use = DB::table('manager_user')->find($user_id_sign_in);
+        $reg_tran = $this->getRegTransaction($start,$end,"",$name_use->first_name);
 
         foreach($reg_tran as $key => $value) {
             $result .= '<tr>';
             $result .= '<td>' . ($key + 1) . '</td>';
             $result .= '<td>' . $value->isdn . '</td>';
-            $result .= '<td>' . $value->reg_datetime . '</td>';
-            $result .= '<td>' . $value->type . '</td>';
-            $result .= '<td>' . $value->package_code . '</td>';
+            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+            $result .= '<td>' . 'Đăng ký gói dịch vụ'. '</td>';
+            $result .= '<td>' . $value->packageCode . '</td>';
             $result .= '</tr>';
         }
         return $result;
     }
 
-    public function getSearchRegTran($time,$start, $end){
-        $reg_tran = DB::table($time)
-            -> select('isdn','reg_datetime','package_code')
-            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> whereBetween('reg_datetime',[$start,$end])
-            -> get();
-        return $reg_tran;
-    }
+//    public function getSearchRegTran($time,$start, $end){
+//        $reg_tran = DB::table($time)
+//            -> select('isdn','reg_datetime','package_code')
+//            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
+//            -> where('request','=','SUB')
+//            -> whereNotNull('reg_datetime')
+//            -> whereBetween('reg_datetime',[$start,$end])
+//            -> get();
+//        return $reg_tran;
+//    }
 
+    // Ajax search data User - UnReg
     public  function  SearchDateTimeUnRegTran(Request $request){
         $startEnd = $request->startEnd;
         $date_range = explode( ' - ',$startEnd);
@@ -280,31 +374,21 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $unreg_tran = $this->getSearchUnRegTran('cdr_201908',$start,$end);
+        $unreg_tran = $this->getUnRegTransaction($start,$end,'');
 
         foreach($unreg_tran as $key => $value) {
             $result .= '<tr>';
             $result .= '<td>' . ($key + 1) . '</td>';
             $result .= '<td>' . $value->isdn . '</td>';
-            $result .= '<td>' . $value->reg_datetime . '</td>';
-            $result .= '<td>' . $value->type . '</td>';
-            $result .= '<td>' . $value->package_code . '</td>';
+            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+            $result .= '<td> Hủy Dịch Vụ Gói</td>';
+            $result .= '<td>' . $value->packageCode . '</td>';
             $result .= '</tr>';
         }
         return $result;
     }
 
-    public function getSearchUnRegTran($time,$start,$end){
-        $unreg_tran = DB::table($time)
-            -> select('isdn','reg_datetime','package_code')
-            -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
-            -> where('request','=','UNSUB')
-            -> whereNotNull('reg_datetime')
-            -> whereBetween('reg_datetime',[$start,$end])
-            -> get();
-        return $unreg_tran;
-    }
-
+    // Ajax search data MOMT
     public  function SearchDateTimeMOMT(Request $request)
     {
         $startEnd = $request->startEnd;
@@ -313,30 +397,37 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $momt = $this->getSearchMOMT('mtobj_201908',$start,$end);
-        foreach ($momt as $value) {
-            if ($value->timeaction == null) {
-                $value->result = "Không thành công";
+        $momt = $this->getMOMT($start,$end,"");
+
+        foreach($momt as $key => $value) {
+            if (count($value->joinDTOS) > 0) {
+                foreach ($value->joinDTOS as $valueDtos) {
+                $result .= '<tr>';
+                $result .= '<td>' . $value->groupCode . '</td>';
+                $result .= '<td>' . $value->isdn . '</td>';
+                $result .= '<td>' . substr($value->dateReceiveRequest, -17, 8) . ', ' . substr($value->dateReceiveRequest, 0, 10) . '</td>';
+                $result .= '<td>' . $value->commandCode . '</td>';
+                    $result .= '<td>' . substr($valueDtos->timerequest, -17, 8) . ', ' . substr($valueDtos->timerequest, 0, 10) . '</td>';
+                    $result .= '<td>' . $valueDtos->content . '</td>';
+                    $result .= '<td>Thành Công</td>';
+                    $result .= '<td><a href="#" class="btn dropdown-item">
+                                            <i class="fas fa-edit"> Gửi lại</i>
+                                        </a></td>';
+                    $result .= '</tr>';
+                }
             } else {
-                $value->result = "Thành công";
+                $result .= '<tr>';
+                $result .= '<td>' . $value->groupCode . '</td>';
+                $result .= '<td>' . $value->isdn . '</td>';
+                $result .= '<td>' . substr($value->dateReceiveRequest, -17, 8) . ', ' . substr($value->dateReceiveRequest, 0, 10) . '</td>';
+                $result .= '<td>' . $value->commandCode . '</td>';
+                $result .= '<td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>';
+                $result .= '</tr>';
             }
         }
-
-        foreach ($momt as $key => $value){
-            $result .= '<tr>';
-        $result .= '<td>' . $value->username . '</td>';
-        $result .= '<td>' . substr($value->isdn, 0, 4) . '</td>';
-        $result .= '<td>' . $value->timerequest . '</td>';
-        $result .= '<td>' . $value->command_code . '</td>';
-        $result .= '<td>' . $value->timeaction . '</td>';
-        $result .= '<td>' . $value->content . '</td>';
-        $result .= '<td>' . $value->result . '</td>';
-        $result .= '<td><a href="#" class="btn dropdown-item">
-                        <i class="fas fa-edit"> Gửi lại</i>
-                        </a></td>';
-        $result .= '</tr>';
-        }
-
         return $result;
     }
 
@@ -704,99 +795,6 @@ class CustomerServiceController extends Controller
         $dd = json_decode($result);
         curl_close($curl);
     }
-
-
-//    public  function  unsubWithPhone($phonenumber){
-//        $subUnsub_acc_phone = DB::table('cdr_201908')
-//            -> select(DB::raw('DISTINCT isdn'))
-//            -> whereNotNull('isdn')
-//            -> get();
-//        $result = [];
-//        foreach ($subUnsub_acc_phone as $key => $value){
-//            $infor_phone = DB::table('cdr_201908')
-//                -> select('id','isdn',
-//                    'request' , 'service_code', 'group_code' , 'package_code', 'command_code',
-//                    'reg_datetime', 'sta_datetime', 'end_datetime', 'expire_datetime', 'status',
-//                    'channel', 'charge_price', 'message_send', 'org_request', 'date_receive_request')
-//                -> where('isdn','=',$value->isdn)
-//                -> orderBy('id','DESC')
-//                -> first();
-//            $result[$key] = $infor_phone;
-//        }
-//        foreach ($result as $data)
-//            if($data->isdn == $phonenumber && ($data->request == "SUB" || $data->request == "GH" )){
-//                $createUnSub = DB::table('cdr_201908')->insert([
-//                    'isdn' => $data->isdn,
-//                    'request' => "UNSUB",
-//                    'service_code' => $data->service_code,
-//                    'group_code' => $data->group_code,
-//                    'package_code' => $data->package_code,
-//                    'command_code' => $data->command_code,
-//                    'reg_datetime' => $data->reg_datetime,
-//                    'sta_datetime' => $data->sta_datetime,
-//                    'end_datetime' => $data->end_datetime,
-//                    'expire_datetime' => $data->expire_datetime,
-//                    'status' => $data->status,
-//                    'channel' => $data->channel,
-//                    'charge_price' => $data->charge_price,
-//                    'message_send' => $data->message_send,
-//                    'org_request' => $data->org_request,
-//                    'date_receive_request' => $data->date_receive_request
-//                ]);
-//        }
-//    }
-//
-//    public function  subDayWithPhone($phoneNumber){
-//        date_default_timezone_set('Asia/Ho_Chi_Minh');
-//        $date = date('Y-m-d H:i:s');
-//        $d1=strtotime("tomorrow");
-//        $date_after_1day = date('Y-m-d H:i:s',$d1);
-//
-//        $createUnSub = DB::table('cdr_201908')->insert([
-//            'isdn' => $phoneNumber,
-//            'request' => "SUB",
-//            'service_code' => null,
-//            'group_code' => "GAMEON",
-//            'package_code' => "G",
-//            'command_code' => "DK G",
-//            'reg_datetime' => $date,
-//            'sta_datetime' => $date,
-//            'end_datetime' => $date_after_1day,
-//            'expire_datetime' => $date_after_1day,
-//            'status' => 1,
-//            'channel' => "VASP",
-//            'charge_price' => 2000,
-//            'message_send' => "(DK) Chúc mừng Quý khách đã đăng ký thành công gói ngày(G) – Chơi Game PubG Mobile Miễn phí cước 3G/4G của dịch vụ gameOn. Gói cước tự động gia hạn. Để hủy dịch vụ, soạn HUY G gửi 9129. Chi tiết truy cập http://game.freedata.vn/pubgm hoặc gọi 9090. Giá cước 2000đ/ngày. Trân trọng cảm ơn!",
-//            'org_request' => "Dk g",
-//            'date_receive_request' => $date
-//        ]);
-//    }
-//
-//    public function subWeekWithPhone($phoneNumber){
-//        date_default_timezone_set('Asia/Ho_Chi_Minh');
-//        $date = date('Y-m-d H:i:s');
-//        $d7 = strtotime("+7 days");
-//        $date_after_week = date('Y-m-d H:i:s',$d7);
-//
-//        $createUnSub = DB::table('cdr_201908')->insert([
-//            'isdn' => $phoneNumber,
-//            'request' => "SUB",
-//            'service_code' => null,
-//            'group_code' => "GAMEON",
-//            'package_code' => "G",
-//            'command_code' => "DK G",
-//            'reg_datetime' => $date,
-//            'sta_datetime' => $date,
-//            'end_datetime' => $date_after_week,
-//            'expire_datetime' => $date_after_week,
-//            'status' => 1,
-//            'channel' => "VASP",
-//            'charge_price' => 2000,
-//            'message_send' => "(DK) Chúc mừng Quý khách đã đăng ký thành công gói ngày(G) – Chơi Game PubG Mobile Miễn phí cước 3G/4G của dịch vụ gameOn. Gói cước tự động gia hạn. Để hủy dịch vụ, soạn HUY G gửi 9129. Chi tiết truy cập http://game.freedata.vn/pubgm hoặc gọi 9090. Giá cước 2000đ/ngày. Trân trọng cảm ơn!",
-//            'org_request' => "Dk g",
-//            'date_receive_request' => $date
-//        ]);
-//    }
 
 
 }

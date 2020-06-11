@@ -249,26 +249,26 @@ return [
             'text'    => 'THỐNG KÊ BÁO CÁO',
             'icon'    => 'fas fa-clipboard-list',
             'submenu' => [
+//                [
+//                    'text' => 'Sản Lượng Thời Gian Bất Kỳ',
+//                    'url'  => 'report/report_bk',
+//                ],
+//                [
+//                    'text' => 'Sản Lượng Ngày',
+//                    'url'  => 'report/report_day',
+//                ],
                 [
-                    'text' => 'Sản Lượng Thời Gian Bất Kỳ',
-                    'url'  => 'report/report_bk',
-                ],
-                [
-                    'text' => 'Sản Lượng Ngày',
-                    'url'  => 'report/report_day',
-                ],
-                [
-                    'text' => 'Sản Lượng Tuần',
+                    'text' => 'Sản Lượng Theo Thời Gian',
                     'url'  => 'report/report_week',
                 ],
-                [
-                    'text' => 'Sản Lượng Tháng',
-                    'url'  => 'report/report_month',
-                ],
-                [
-                    'text' => 'Sản Lượng Năm',
-                    'url'  => 'report/report_year',
-                ],
+//                [
+//                    'text' => 'Sản Lượng Tháng',
+//                    'url'  => 'report/report_month',
+//                ],
+//                [
+//                    'text' => 'Sản Lượng Năm',
+//                    'url'  => 'report/report_year',
+//                ],
             ],
         ],
         [

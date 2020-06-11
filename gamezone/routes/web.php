@@ -41,12 +41,12 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
     //report
     Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
     Route::get('report/report_bk','ReportController@listReportDayAction')->name('report_bk_action');
-    Route::get('report/report_week','ReportController@listReportDayAction')->name('report_week_action');
+    Route::get('report/report_week','ReportController@listReportActionAPI')->name('report_week_action');
     Route::get('report/report_month','ReportController@listReportDayAction')->name('report_month_action');
     Route::get('report/report_year','ReportController@listReportDayAction')->name('report_year_action');
 
 
-    Route::post('report/search/loadData/','ReportController@SearchDateTime')->name('search_date_time');
+    Route::post('report/search/loadData/','ReportController@SearchDataWithDate')->name('search_date_time');
 
     //Customer service
     Route::get('cussv/reg_tran','CustomerServiceController@regTransactions')->name('cus_sv_reg');
