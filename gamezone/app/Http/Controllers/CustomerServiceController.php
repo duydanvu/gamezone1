@@ -9,6 +9,97 @@ use Illuminate\Support\Facades\Redirect;
 
 class CustomerServiceController extends Controller
 {
+    public function listTable($from ,$to ,$nameSub){
+        if(substr($from,0,4) == substr($to,0,4)){
+            if(substr($from,5,2) < substr($to,5,2)){
+                $countMonth = (int)substr($to,5,2) - (int)substr($from,5,2);
+                $arr = [];
+                for($i = 0;$i <=$countMonth;++$i){
+                    if($i < 10) {
+                        $arr[$i] = $nameSub . substr($from, 0, 4) . '0' . (substr($from, 5, 2) + $i);
+                    }else{
+                        $arr[$i] = $nameSub . substr($from, 0, 4) . (substr($from, 5, 2) + $i);
+                    }
+                }
+                return  $arr;
+
+            }
+            if(substr($from,5,2) > substr($to,5,2)){
+                return null;
+            }
+            if(substr($from,5,2) == substr($to,5,2)){
+                if(substr($from,8,2) <= substr($to,8,2)){
+                    $arr = $nameSub."".substr($from,0,4).substr($from,5,2);
+                    return $arr;
+                }
+                else{
+                    return null;
+                }
+            }
+        }
+        if(substr($from,0,4) > substr($to,0,4))return null;
+        else{
+            $year = substr($to,0,4) - substr($from,0,4);
+            if($year <= 1){
+                $month = 12 - substr($from,5,2);
+                for($i = 0; $i <=$month;++$i){
+                    if((substr($from,5,2)+$i) >=10) {
+                        $arr[$i] = $nameSub . (substr($from, 0, 4) . (substr($from, 5, 2) + $i));
+                    }else{
+                        $arr[$i] = $nameSub . (substr($from, 0, 4) . '0'.(substr($from, 5, 2) + $i));
+                    }
+                }
+                $month2 = (substr($to,5,2) - 0);
+                for($i = 1;$i <= $month2 ; ++$i){
+                    if($i >=10) {
+                        array_push($arr, $nameSub . (substr($to, 0, 4) . $i));
+                    }else{
+                        array_push($arr, $nameSub . (substr($to, 0, 4) . '0'.$i));
+                    }
+                }
+                return $arr;
+
+            }if($year > 1){
+                $arr2 = [];
+                for($i = 0;$i <= $year;++$i){
+                    if($i == 0){
+                        $month3 = 12 - substr($from,5,2);
+                        for($j = 0; $j <= $month3;++$j){
+                            if((substr($from,5,2) + $j) >= 10) {
+                                $arr2[$j] = $nameSub . (substr($from, 0, 4) . (substr($from, 5, 2) + $j));
+                            }else{
+                                $arr2[$j] = $nameSub . (substr($from, 0, 4) . '0'.(substr($from, 5, 2) + $j));
+                            }
+                        }
+                    }
+                    if($i == $year){
+                        $month4 = (substr($to,5,2) - 0);
+                        for($k = 1;$k <= $month4 ; ++$k){
+                            if($k  >= 10) {
+                                array_push($arr2, $nameSub . (substr($to, 0, 4) . $k));
+                            }else{
+                                array_push($arr2, $nameSub . (substr($to, 0, 4) . '0'.$k));
+                            }
+                        }
+                    }
+                    else{
+                        for($j = 1; $j <= 12; $j++){
+                            if($j >=10) {
+                                array_push($arr2, $nameSub . ((substr($from, 0, 4)+1) . $j));
+                            }else{
+                                array_push($arr2, $nameSub . ((substr($from, 0, 4)+1) . '0'.$j));
+                            }
+                        }
+                    }
+                }
+                return $arr2;
+                dd($arr2);
+
+            }
+        }
+
+    }
+
     public function regTransactions(){
         $user_id_sign_in = Auth::id();
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
@@ -189,6 +280,8 @@ class CustomerServiceController extends Controller
     }
 
     public function historyAccountUse(){
+
+//        $history_acc = $this->getDataHistoryAccUse();
         $history_acc = $this->getHistoryAccout('cdr_201908');
 
         foreach ($history_acc as $value){
@@ -224,7 +317,12 @@ class CustomerServiceController extends Controller
     }
 
     public function extenAcc(){
-        $exten_acc = $this ->getExtendAcc('cdr_201908');
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+//        $exten_acc = $this ->getHistoryRenew($dateend,$datenow,'','');
+        $exten_acc = $this->getExtendAcc('cdr_201908');
         return view('customer_service.exten_acc')->with('exten_acc',$exten_acc);
     }
 
@@ -481,6 +579,7 @@ class CustomerServiceController extends Controller
     }
 
     public  function  getSearchTimeHisAcc($time,$start,$end){
+
         $history_acc = DB::table($time)
             -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
             -> whereNotNull('reg_datetime')
@@ -493,6 +592,9 @@ class CustomerServiceController extends Controller
         return $history_acc;
     }
 
+    /*
+     * Ajax to search history Acc use Data
+     */
     public  function SearchDateTimeHisAccUse(Request $request){
         $startEnd = $request->startEnd;
         $date_range = explode( ' - ',$startEnd);
@@ -500,7 +602,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $history_acc = $this->getSearchHisAccUse('cdr_201908',$start,$end);
+        $history_acc = $this->getDataHistoryAccUse($start,$end,'','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -536,15 +638,70 @@ class CustomerServiceController extends Controller
         return $result;
     }
 
-    public function getSearchHisAccUse($time,$start,$end){
-        $history_acc = DB::table($time)
-            -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
-            -> whereNotNull('reg_datetime')
-            -> whereBetween('reg_datetime',[$start,$end])
-            -> get();
-        return $history_acc;
+    /*
+     * get all table with list table
+     */
+
+    public function getDataHistoryAccUse($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $exten_acc = $this->getSearchHisAccUse($table, $start, $end, null, 1);
+        }
+        else {
+            $exten_acc1 = $this->getSearchHisAccUse($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $exten_acc = $this->getSearchHisAccUse($table[$i], $start, $end, $exten_acc1,3);
+            }
+        }
+        return $exten_acc;
+
     }
 
+    /* Query Database history_acc_use
+       input
+       $start, $end time
+       $time - name table
+       $his_acc_first - table to union
+       index - compare to select query
+    */
+    public function getSearchHisAccUse($time,$start,$end,$his_acc_first,$index){
+        if($index == 1) {
+            $history_acc = DB::table($time)
+                ->select('isdn', 'reg_datetime', 'request', 'channel', 'package_code', 'charge_price', 'message_send')
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->get();
+            return $history_acc;
+        }
+        if($index == 2){
+            $history_acc = DB::table($time)
+                ->select('isdn', 'reg_datetime', 'request', 'channel', 'package_code', 'charge_price', 'message_send')
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end]);
+            return $history_acc;
+        }
+        else{
+            $history_acc = DB::table($time)
+                ->select('isdn', 'reg_datetime', 'request', 'channel', 'package_code', 'charge_price', 'message_send')
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->union($his_acc_first)
+                ->get();
+            return $history_acc;
+        }
+    }
+
+    /*
+     * Ajax return result search Exten Acc
+     */
     public function SearchDateTimeExtenAcc(Request $request){
         $startEnd = $request->startEnd;
         $date_range = explode( ' - ',$startEnd);
@@ -552,7 +709,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $exten_acc = $this->getSearchExtenAcc('cdr_201908',$start,$end);
+        $exten_acc = $this->getHistoryRenew($start,$end,"","");
 
         foreach($exten_acc as $key => $value) {
             $result .= '<tr>';
@@ -569,15 +726,74 @@ class CustomerServiceController extends Controller
         return $result;
     }
 
-    public function getSearchExtenAcc($time,$start,$end){
-        $exten_acc = DB::table($time)
-            -> select('isdn','reg_datetime','package_code','channel','charge_price')
-            -> addSelect(DB::raw("'Gia Hạn' as type"))
-            -> addSelect(DB::raw("'Thành Công' as tt"))
-            -> where('request','=','GH')
-            -> whereBetween('reg_datetime',[$start,$end])
-            -> whereNotNull('reg_datetime')
-            -> get();
+
+    /* Query date to database
+       input
+       $start, $end time
+       $time - name table
+       $exten - table to union
+       index - compare to select query
+    */
+    public function getSearchExtenAcc($time,$start,$end,$exten,$index){
+        if($index == 1){
+            $exten_acc = DB::table($time)
+                -> select('isdn','reg_datetime','package_code','channel','charge_price')
+                -> addSelect(DB::raw("'Gia Hạn' as type"))
+                -> addSelect(DB::raw("'Thành Công' as tt"))
+                -> where('request','=','GH')
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> whereNotNull('reg_datetime')
+                -> get();
+            return $exten_acc;
+        }
+        if($index = 2){
+            $exten_acc = DB::table($time)
+                -> select('isdn','reg_datetime','package_code','channel','charge_price')
+                -> addSelect(DB::raw("'Gia Hạn' as type"))
+                -> addSelect(DB::raw("'Thành Công' as tt"))
+                -> where('request','=','GH')
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> whereNotNull('reg_datetime');
+            return $exten_acc;
+        }else {
+            $exten_acc = DB::table($time)
+                ->select('isdn', 'reg_datetime', 'package_code', 'channel', 'charge_price')
+                ->addSelect(DB::raw("'Gia Hạn' as type"))
+                ->addSelect(DB::raw("'Thành Công' as tt"))
+                ->where('request', '=', 'GH')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->whereNotNull('reg_datetime')
+                ->union($exten)
+                ->get();
+            return $exten_acc;
+        }
+    }
+
+
+    /*  get History Renew with time
+        input
+        $start, $end, $phone , $username(maybe user)
+    */
+    public function getHistoryRenew($start ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $exten_acc = $this->getSearchExtenAcc($table, $start, $end, null, 1);
+        }
+        else {
+            $exten_acc1 = $this->getSearchExtenAcc($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $exten_acc2 = $this->getSearchExtenAcc($table[$i], $start, $end, $exten_acc1,3);
+            }
+            $exten_acc = $exten_acc2->get();
+        }
         return $exten_acc;
     }
 

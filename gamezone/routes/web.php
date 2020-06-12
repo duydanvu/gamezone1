@@ -25,6 +25,8 @@ Route::post('/logout','Auth\CustomAuthController@logout')->name('logout');
 Route::group(['middleware' => ['web','checkLogOut']],function (){
     Route::get('/home', 'HomeController@index')->name('dashboard');
 
+    Route::get('/test','CustomerServiceController@getDataHistoryAccUse')->name('test');
+
     //Admin
     Route::get('admin/list_use','SystemController@listUse')->name('admin_list_user');
     Route::get('admin/list_use/update/{id}','SystemController@updateUseView')->name('admin_list_update_user');
