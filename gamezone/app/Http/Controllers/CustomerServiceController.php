@@ -104,49 +104,63 @@ class CustomerServiceController extends Controller
         $user_id_sign_in = Auth::id();
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
         date_default_timezone_set('Asia/Ho_Chi_Minh');
-        $datenow = date('Y-m-d');
-        $arrdate = explode("-",$datenow);
-        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
-//        $reg_tran = $this->getRegTransaction('cdr_201908');
-        $reg_tran = $this->getRegTransaction($dateend,$datenow,"",$name_use->first_name);
+        $reg_tran = $this->getQueryRegTransactions("","","",$name_use->first_name);
         return view('customer_service.reg_transactions')->with('reg_tran',$reg_tran);
     }
 
-    public function  getRegTransaction($start,$end,$phone,$username){
-        $data = array(
-            "from" => $start,
-            "isdn" => $phone,
-            "status" => 0,
-            "to" => $end,
-            "username" => $username
-        );
-        $data_string = json_encode($data);
+    public function getQueryRegTransactions($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $regTran_acc = $this->getRegTransaction($table, $start, $end, null, 1);
+        }
+        else {
+            $regTran_acc1 = $this->getRegTransaction($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $regTran_acc = $this->getRegTransaction($table[$i], $start, $end, $regTran_acc1,3);
+            }
+        }
+        return $regTran_acc;
 
-        $curl = curl_init('http://192.168.100.4:9000/api/user-regs-search');
-
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
-        );
-
-        $result = curl_exec($curl);
-        $dd = json_decode($result);
-        curl_close($curl);
-        return $dd;
     }
-//    public function getRegTransaction($time){
-//        $reg_tran = DB::table($time)
-//            -> select('isdn','reg_datetime','package_code')
-//            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
-//            -> where('request','=','SUB')
-//            -> whereNotNull('reg_datetime')
-//            -> get();
-//        return $reg_tran;
-//    }
+
+    public function getRegTransaction($table,$start,$end,$regtb,$index){
+        if($index = 1){
+            $reg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
+                -> where('request','=','SUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> get();
+            return $reg_tran;
+        } else if($index = 3){
+            $reg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
+                -> where('request','=','SUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end]);
+            return $reg_tran;
+        }else{
+            $reg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
+                -> where('request','=','SUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> union($regtb)
+                -> get();
+            return $reg_tran;
+        }
+    }
 
     public function unregTransactions(){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
@@ -157,41 +171,59 @@ class CustomerServiceController extends Controller
         return view('customer_service.unreg_transactions')->with('unreg_tran',$unreg_tran);
     }
 
-    public function getUnRegTransaction($start,$end,$phone){
-        $user_id_sign_in = Auth::id();
-        $name_use = DB::table('manager_user')->find($user_id_sign_in);
-        $username = $name_use->first_name;
-        $data = array(
-            "from" => $start,
-            "isdn" => $phone,
-            "status" => 0,
-            "to" => $end,
-            "username" => $username
-        );
-        $data_string = json_encode($data);
+    public function getQueryUnRegTransactions($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $unregTran_acc = $this->getUnRegTransaction($table, $start, $end, null, 1);
+        }
+        else {
+            $unregTran_acc1 = $this->getUnRegTransaction($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $unregTran_acc = $this->getUnRegTransaction($table[$i], $start, $end, $unregTran_acc1,3);
+            }
+        }
+        return $unregTran_acc;
 
-        $curl = curl_init('http://192.168.100.4:9000/api/user-cancels-search');
+    }
 
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
-        );
+    public function getUnRegTransaction($table,$start,$end,$unRegTran,$index){
+        if($index = 1){
+            $unreg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
+                -> where('request','=','UNSUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> get();
+            return $unreg_tran;
+        } elseif ($index = 2){
+            $unreg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
+                -> where('request','=','UNSUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end]);
+            return $unreg_tran;
+        } else{
+            $unreg_tran = DB::table($table)
+                -> select('isdn','reg_datetime','package_code')
+                -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
+                -> where('request','=','UNSUB')
+                -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> union($unRegTran)
+                -> get();
+            return $unreg_tran;
+        }
 
-        $result = curl_exec($curl);
-        $dd = json_decode($result);
-        curl_close($curl);
-        return $dd;
-//        $unreg_tran = DB::table($time)
-//            -> select('isdn','reg_datetime','package_code')
-//            -> addSelect(DB::raw("'Hủy gói dịch vụ' as type"))
-//            -> where('request','=','UNSUB')
-//            -> whereNotNull('reg_datetime')
-//            -> get();
-//        return $unreg_tran;
     }
 
     public function moMt(){
@@ -199,47 +231,58 @@ class CustomerServiceController extends Controller
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
-        $momt = $this -> getMOMT($datenow,$datenow,"");
+        $momt = $this -> getQueryMOMT($datenow,$datenow,"");
         return view('customer_service.momt')->with('momt',$momt);
     }
 
-    public function getMOMT($start,$end,$phone){
-        $user_id_sign_in = Auth::id();
-        $name_use = DB::table('manager_user')->find($user_id_sign_in);
-        $username = $name_use->first_name;
-        $data = array(
-            "from" => $start,
-            "isdn" => $phone,
-            "status" => 0,
-            "to" => $end,
-            "username" => $username
-        );
-        $data_string = json_encode($data);
+    public function getQueryMOMT($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'mtobj_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'mtobj_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $momt = $this->getMOMT($table, $start, $end, null, 1);
+        }
+        else {
+            $momt1 = $this->getMOMT($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $momt = $this->getMOMT($table[$i], $start, $end, $momt1,3);
+            }
+        }
+        return $momt;
 
-        $curl = curl_init('http://192.168.100.4:9000/api/mt-objects-search');
+    }
 
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
-        );
+    public function getMOMT($table,$start,$end,$momt_0,$index){
+        if($index = 1){
+            $momt = DB::table($table)
+                -> select('username','isdn','timerequest','command_code','timeaction','content')
+                -> addSelect(DB::raw("'null' as result"))
+                -> get();
+            return $momt;
+        }elseif ($index = 2){
+            $momt = DB::table($table)
+                -> select('username','isdn','timerequest','command_code','timeaction','content')
+                -> addSelect(DB::raw("'null' as result"));
+            return $momt;
+        }else{
+            $momt = DB::table($table)
+                -> select('username','isdn','timerequest','command_code','timeaction','content')
+                -> addSelect(DB::raw("'null' as result"))
+                -> union($momt_0)
+                -> get();
+            return $momt;
+        }
 
-        $result = curl_exec($curl);
-        $dd = json_decode($result);
-        curl_close($curl);
-        return $dd;
-//        $momt = DB::table($time)
-//            -> select('username','isdn','timerequest','command_code','timeaction','content')
-//            -> addSelect(DB::raw("'null' as result"))
-//            -> get();
-//        return $momt;
     }
 
     public function historyAccount(){
-        $history_acc = $this->getHistoryAccout('cdr_201908');
+        $history_acc = $this->getQueryHistoryAcc('','','','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -261,28 +304,106 @@ class CustomerServiceController extends Controller
         return view('customer_service.history_trucuoc')->with('history_acc',$history_acc);
     }
 
-    public function getHistoryAccout($time){
-        $history_acc = DB::table($time)
-            -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
-            -> whereNotNull('reg_datetime')
-            -> where('request','=','SUB')
-            ->orWhere('request','=','GH')
-            -> get();
-        return $history_acc;
+    public function getQueryHistoryAcc($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $hisAcc = $this->getHistoryAccout($table, $start, $end, null, 1);
+        }
+        else {
+            $hisAcc1 = $this->getHistoryAccout($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $hisAcc = $this->getHistoryAccout($table[$i], $start, $end, $hisAcc1,3);
+            }
+        }
+        return $hisAcc;
+
     }
 
-    public function getHistoryAccountUse($time){
-        $history_acc = DB::table($time)
-            -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
-            -> whereNotNull('reg_datetime')
-            -> get();
-        return $history_acc;
+    public function getHistoryAccout($table,$start,$end,$his_acc_0,$index){
+        if($index = 1){
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
+                -> whereNotNull('reg_datetime')
+                -> where('request','=','SUB')
+                ->orWhere('request','=','GH')
+                -> get();
+            return $history_acc;
+        }elseif ( $index = 2){
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
+                -> whereNotNull('reg_datetime')
+                -> where('request','=','SUB')
+                ->orWhere('request','=','GH');
+            return $history_acc;
+        }else{
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
+                -> whereNotNull('reg_datetime')
+                -> where('request','=','SUB')
+                -> orWhere('request','=','GH')
+                -> union($his_acc_0)
+                -> get();
+            return $history_acc;
+        }
+    }
+
+    public function getHistoryAccountUse($table,$start,$end,$his_acc_use_0,$index){
+        if($index = 1){
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
+                -> whereNotNull('reg_datetime')
+                -> get();
+            return $history_acc;
+        }elseif ($index = 2){
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
+                -> whereNotNull('reg_datetime');
+            return $history_acc;
+        }else{
+            $history_acc = DB::table($table)
+                -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
+                -> whereNotNull('reg_datetime')
+                -> union($his_acc_use_0)
+                -> get();
+            return $history_acc;
+        }
+    }
+
+    public function getQueryHistoryAccUse($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $hisAccUse = $this->getHistoryAccountUse($table, $start, $end, null, 1);
+        }
+        else {
+            $hisAccUse1 = $this->getHistoryAccountUse($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $hisAccUse = $this->getHistoryAccountUse($table[$i], $start, $end, $hisAccUse1,3);
+            }
+        }
+        return $hisAccUse;
+
     }
 
     public function historyAccountUse(){
 
 //        $history_acc = $this->getDataHistoryAccUse();
-        $history_acc = $this->getHistoryAccout('cdr_201908');
+        $history_acc = $this->getQueryHistoryAccUse('','','','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -305,15 +426,58 @@ class CustomerServiceController extends Controller
         return view('customer_service.history_acc_use')->with('history_acc_use',$history_acc);
     }
 
-    public function getExtendAcc($time){
-        $exten_acc = DB::table($time)
-            -> select('isdn','reg_datetime','package_code','channel','charge_price')
-            -> addSelect(DB::raw("'Gia Hạn' as type"))
-            -> addSelect(DB::raw("'Thành Công' as tt"))
-            -> where('request','=','GH')
-            -> whereNotNull('reg_datetime')
-            -> get();
-        return $exten_acc;
+    public function getExtendAcc($table,$start,$end,$extend_acc_0,$index){
+        if($index = 1){
+            $exten_acc = DB::table($table)
+                -> select('isdn','reg_datetime','package_code','channel','charge_price')
+                -> addSelect(DB::raw("'Gia Hạn' as type"))
+                -> addSelect(DB::raw("'Thành Công' as tt"))
+                -> where('request','=','GH')
+                -> whereNotNull('reg_datetime')
+                -> get();
+            return $exten_acc;
+        }elseif ($index = 2){
+            $exten_acc = DB::table($table)
+                -> select('isdn','reg_datetime','package_code','channel','charge_price')
+                -> addSelect(DB::raw("'Gia Hạn' as type"))
+                -> addSelect(DB::raw("'Thành Công' as tt"))
+                -> where('request','=','GH')
+                -> whereNotNull('reg_datetime');
+            return $exten_acc;
+        }else{
+            $exten_acc = DB::table($table)
+                -> select('isdn','reg_datetime','package_code','channel','charge_price')
+                -> addSelect(DB::raw("'Gia Hạn' as type"))
+                -> addSelect(DB::raw("'Thành Công' as tt"))
+                -> where('request','=','GH')
+                -> whereNotNull('reg_datetime')
+                -> union($extend_acc_0)
+                -> get();
+            return $exten_acc;
+        }
+    }
+
+    public function getQueryExtendAcc($start  ,$end ,$phone ,$username ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $hisAccUse = $this->getExtendAcc($table, $start, $end, null, 1);
+        }
+        else {
+            $hisAccUse1 = $this->getExtendAcc($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $hisAccUse = $this->getExtendAcc($table[$i], $start, $end, $hisAccUse1,3);
+            }
+        }
+        return $hisAccUse;
+
     }
 
     public function extenAcc(){
@@ -322,7 +486,7 @@ class CustomerServiceController extends Controller
         $arrdate = explode("-",$datenow);
         $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
 //        $exten_acc = $this ->getHistoryRenew($dateend,$datenow,'','');
-        $exten_acc = $this->getExtendAcc('cdr_201908');
+        $exten_acc = $this->getQueryExtendAcc('','','','');
         return view('customer_service.exten_acc')->with('exten_acc',$exten_acc);
     }
 
