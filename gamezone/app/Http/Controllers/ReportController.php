@@ -497,6 +497,7 @@ class ReportController extends Controller
             return $acc_dk_vasgate;
         }
     }
+
     public function countPhone($table,$start,$end,$countPhone_0,$index){
         if($index == 1){
             $sum_acc_phone = DB::table($table)
@@ -523,26 +524,8 @@ class ReportController extends Controller
     }
 
     public function listReportDayAction(){
-        $total = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date'))
-            -> addSelect(DB::raw("'0' as acc_sub"))
-            -> addSelect(DB::raw("'0' as acc_unsub_pp"))
-            -> addSelect(DB::raw("'0' as acc_unsub_stm"))
-            -> addSelect(DB::raw("'0' as acc_psc"))
-            -> addSelect(DB::raw("'0' as acc_active"))
-            -> addSelect(DB::raw("'0' as acc_gh"))
-            -> addSelect(DB::raw("'0' as acc_dk_sms"))
-            -> addSelect(DB::raw("'0' as acc_dk_wap"))
-            -> addSelect(DB::raw("'0' as acc_dk_vasgate"))
-            -> whereNotNull('reg_datetime')
-            -> groupBy('reg_datetime')
-            -> get();
-        $acc_sub = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_sub'))
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> groupBy('date')
-            -> get();
+        $total = $this ->getQueryDB('2019-07-01','2019-08-31','','','totalReport');
+        $acc_sub = $this ->getQueryDB('2019-07-01','2019-08-31','','','countSub');
         foreach ($total as $value){
             foreach ($acc_sub as $value1){
                 if($value->date === $value1->date){
@@ -550,16 +533,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_unsub_people = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_sub_pp'))
-            -> where('request','=','UNSUB')
-            -> where(function($query){
-                $query->where('channel','=','SMS')
-                    ->orwhere('channel','=','WAP');
-            })
-            -> whereNotNull('reg_datetime')
-            -> groupBy('date')
-            -> get();
+        $acc_unsub_people = $this ->getQueryDB('2019-07-01','2019-08-31','','','countUnSubPP');
         foreach ($total as $value){
             foreach ($acc_unsub_people as $value1){
                 if($value->date === $value1->date){
@@ -567,16 +541,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_unsub_system = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_sub_stm'))
-            -> where('request','=','UNSUB')
-            -> where(function($query){
-                $query->where('channel','<>','SMS')
-                    ->orwhere('channel','<>','WAP');
-            })
-            -> whereNotNull('reg_datetime')
-            -> groupBy('date')
-            -> get();
+        $acc_unsub_system = $this -> getQueryDB('2019-07-01','2019-08-31','','','countUnSubST');
         foreach ($total as $value){
             foreach ($acc_unsub_system as $value1){
                 if($value->date === $value1->date){
@@ -584,13 +549,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_psc = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_psc'))
-            -> where('request','=','SUB')
-            -> where('charge_price','>',0)
-            -> whereNotNull('reg_datetime')
-            -> groupBy('date')
-            -> get();
+        $acc_psc = $this -> getQueryDB('2019-07-01','2019-08-31','','','countPsc');
         foreach ($total as $value){
             foreach ($acc_psc as $value1){
                 if($value->date === $value1->date){
@@ -598,15 +557,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_active = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_active'))
-            -> where(function($query){
-                $query -> where('request','=','SUB')
-                    -> orwhere('request','=','GH');
-            })
-            -> whereNotNull('reg_datetime')
-            -> groupBy('date')
-            -> get();
+        $acc_active = $this -> getQueryDB('2019-07-01','2019-08-31','','','countActive');
         foreach ($total as $value){
             foreach ($acc_active as $value1){
                 if($value->date === $value1->date){
@@ -614,12 +565,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_gh = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_gh'))
-            -> where('request','=','GH')
-            -> whereNotNull('reg_datetime')
-            -> groupBy('reg_datetime')
-            -> get();
+        $acc_gh = $this -> getQueryDB('2019-07-01','2019-08-31','','','countGH');
         foreach ($total as $value){
             foreach ($acc_gh as $value1){
                 if($value->date === $value1->date){
@@ -627,13 +573,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_dk_sms = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_dk_sms'))
-            -> where('channel','=','SMS')
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> groupBy('reg_datetime')
-            -> get();
+        $acc_dk_sms = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkSMS');
         foreach ($total as $value){
             foreach ($acc_dk_sms as $value1){
                 if($value->date === $value1->date){
@@ -641,13 +581,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_dk_wap = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as wap'))
-            -> where('channel','=','WAP')
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> groupBy('reg_datetime')
-            -> get();
+        $acc_dk_wap = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkWap');
         foreach ($total as $value){
             foreach ($acc_dk_wap as $value1){
                 if($value->date === $value1->date){
@@ -655,14 +589,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $acc_dk_vasgate = DB::table('cdr_201908')
-            -> select(DB::raw('DISTINCT DATE(reg_datetime) as date,COUNT(DISTINCT isdn) as count_sub_vasgate'))
-            -> where('channel','<>','SMS')
-            -> where('channel','<>','WAP')
-            -> where('request','=','SUB')
-            -> whereNotNull('reg_datetime')
-            -> groupBy('reg_datetime')
-            -> get();
+        $acc_dk_vasgate = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkVasgate');
         foreach ($total as $value){
             foreach ($acc_dk_vasgate as $value1){
                 if($value->date === $value1->date){
@@ -670,10 +597,7 @@ class ReportController extends Controller
                 }
             }
         }
-        $sum_acc_phone = DB::table('cdr_201908')
-            -> select(DB::raw('COUNT(DISTINCT isdn) as sum'))
-            -> whereNotNull('isdn')
-            -> get();
+        $sum_acc_phone = $this -> getQueryDB('2019-07-01','2019-08-31','','','countPhone');
         return view('report.report_day')->with(['total'=>$total,'sum' =>$sum_acc_phone]);
     }
 
