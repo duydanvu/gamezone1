@@ -104,7 +104,8 @@ class CustomerServiceController extends Controller
         $user_id_sign_in = Auth::id();
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
         date_default_timezone_set('Asia/Ho_Chi_Minh');
-        $reg_tran = $this->getQueryRegTransactions("","","",$name_use->first_name);
+        $reg_tran = $this->getQueryRegTransactions("2019-07-01","2019-08-31","",$name_use->first_name);
+//        $reg_tran = $this->getQueryRegTransactions("","","",$name_use->first_name);
         return view('customer_service.reg_transactions')->with('reg_tran',$reg_tran);
     }
 
@@ -167,7 +168,7 @@ class CustomerServiceController extends Controller
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
-        $unreg_tran = $this->getUnRegTransaction($datestart,$datenow,"");
+        $unreg_tran = $this->getQueryUnRegTransactions('2019-07-01','2019-08-31',"",'');
         return view('customer_service.unreg_transactions')->with('unreg_tran',$unreg_tran);
     }
 
@@ -231,7 +232,14 @@ class CustomerServiceController extends Controller
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
-        $momt = $this -> getQueryMOMT($datenow,$datenow,"");
+        $momt = $this -> getQueryMOMT('2019-07-01','2019-08-31','','');
+        foreach ($momt as $value){
+            if($value->timeaction == null){
+                $value->result = "Không thành công";
+            }else{
+                $value->result = "Thành công";
+            }
+        }
         return view('customer_service.momt')->with('momt',$momt);
     }
 
@@ -263,17 +271,20 @@ class CustomerServiceController extends Controller
             $momt = DB::table($table)
                 -> select('username','isdn','timerequest','command_code','timeaction','content')
                 -> addSelect(DB::raw("'null' as result"))
+                -> whereBetween('timerequest', [$start, $end])
                 -> get();
             return $momt;
         }elseif ($index = 2){
             $momt = DB::table($table)
                 -> select('username','isdn','timerequest','command_code','timeaction','content')
+                -> whereBetween('timerequest', [$start, $end])
                 -> addSelect(DB::raw("'null' as result"));
             return $momt;
         }else{
             $momt = DB::table($table)
                 -> select('username','isdn','timerequest','command_code','timeaction','content')
                 -> addSelect(DB::raw("'null' as result"))
+                -> whereBetween('timerequest', [$start, $end])
                 -> union($momt_0)
                 -> get();
             return $momt;
@@ -282,7 +293,7 @@ class CustomerServiceController extends Controller
     }
 
     public function historyAccount(){
-        $history_acc = $this->getQueryHistoryAcc('','','','');
+        $history_acc = $this->getQueryHistoryAcc('2019-07-01','2019-08-31','','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -332,23 +343,32 @@ class CustomerServiceController extends Controller
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
                 -> whereNotNull('reg_datetime')
-                -> where('request','=','SUB')
-                ->orWhere('request','=','GH')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> where(function ($query){
+                    $query -> where('request','=','SUB')
+                        -> orWhere('request','=','GH');
+                })
                 -> get();
             return $history_acc;
         }elseif ( $index = 2){
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
                 -> whereNotNull('reg_datetime')
-                -> where('request','=','SUB')
-                ->orWhere('request','=','GH');
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> where(function ($query){
+                    $query -> where('request','=','SUB')
+                        -> orWhere('request','=','GH');
+                });
             return $history_acc;
         }else{
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
                 -> whereNotNull('reg_datetime')
-                -> where('request','=','SUB')
-                -> orWhere('request','=','GH')
+                -> whereBetween('reg_datetime', [$start, $end])
+                -> where(function ($query){
+                    $query -> where('request','=','SUB')
+                        -> orWhere('request','=','GH');
+                })
                 -> union($his_acc_0)
                 -> get();
             return $history_acc;
@@ -360,17 +380,20 @@ class CustomerServiceController extends Controller
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
                 -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
                 -> get();
             return $history_acc;
         }elseif ($index = 2){
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
+                -> whereBetween('reg_datetime', [$start, $end])
                 -> whereNotNull('reg_datetime');
             return $history_acc;
         }else{
             $history_acc = DB::table($table)
                 -> select('isdn','reg_datetime','request','channel','package_code','charge_price','message_send')
                 -> whereNotNull('reg_datetime')
+                -> whereBetween('reg_datetime', [$start, $end])
                 -> union($his_acc_use_0)
                 -> get();
             return $history_acc;
@@ -403,7 +426,7 @@ class CustomerServiceController extends Controller
     public function historyAccountUse(){
 
 //        $history_acc = $this->getDataHistoryAccUse();
-        $history_acc = $this->getQueryHistoryAccUse('','','','');
+        $history_acc = $this->getQueryHistoryAccUse('2019-07-01','2019-08-31','','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -426,38 +449,55 @@ class CustomerServiceController extends Controller
         return view('customer_service.history_acc_use')->with('history_acc_use',$history_acc);
     }
 
-    public function getExtendAcc($table,$start,$end,$extend_acc_0,$index){
-        if($index = 1){
-            $exten_acc = DB::table($table)
+
+    /* Query date to database
+       input
+       $start, $end time
+       $time - name table
+       $exten - table to union
+       index - compare to select query
+    */
+    public function getSearchExtenAcc($time,$start,$end,$exten,$index){
+        if($index == 1){
+            $exten_acc = DB::table($time)
                 -> select('isdn','reg_datetime','package_code','channel','charge_price')
                 -> addSelect(DB::raw("'Gia Hạn' as type"))
                 -> addSelect(DB::raw("'Thành Công' as tt"))
                 -> where('request','=','GH')
+                -> whereBetween('reg_datetime',[$start,$end])
                 -> whereNotNull('reg_datetime')
                 -> get();
             return $exten_acc;
-        }elseif ($index = 2){
-            $exten_acc = DB::table($table)
+        }
+        if($index = 2){
+            $exten_acc = DB::table($time)
                 -> select('isdn','reg_datetime','package_code','channel','charge_price')
                 -> addSelect(DB::raw("'Gia Hạn' as type"))
                 -> addSelect(DB::raw("'Thành Công' as tt"))
                 -> where('request','=','GH')
+                -> whereBetween('reg_datetime',[$start,$end])
                 -> whereNotNull('reg_datetime');
             return $exten_acc;
-        }else{
-            $exten_acc = DB::table($table)
-                -> select('isdn','reg_datetime','package_code','channel','charge_price')
-                -> addSelect(DB::raw("'Gia Hạn' as type"))
-                -> addSelect(DB::raw("'Thành Công' as tt"))
-                -> where('request','=','GH')
-                -> whereNotNull('reg_datetime')
-                -> union($extend_acc_0)
-                -> get();
+        }else {
+            $exten_acc = DB::table($time)
+                ->select('isdn', 'reg_datetime', 'package_code', 'channel', 'charge_price')
+                ->addSelect(DB::raw("'Gia Hạn' as type"))
+                ->addSelect(DB::raw("'Thành Công' as tt"))
+                ->where('request', '=', 'GH')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->whereNotNull('reg_datetime')
+                ->union($exten)
+                ->get();
             return $exten_acc;
         }
     }
 
-    public function getQueryExtendAcc($start  ,$end ,$phone ,$username ){
+
+    /*  get History Renew with time
+        input
+        $start, $end, $phone , $username(maybe user)
+    */
+    public function getHistoryRenew($start ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
@@ -468,25 +508,24 @@ class CustomerServiceController extends Controller
             $table = $this->listTable($dateend,$datenow,'cdr_');
         }
         if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
-            $hisAccUse = $this->getExtendAcc($table, $start, $end, null, 1);
+            $exten_acc = $this->getSearchExtenAcc($table, $start, $end, null, 1);
         }
         else {
-            $hisAccUse1 = $this->getExtendAcc($table[0], $start, $end, null,2);
+            $exten_acc1 = $this->getSearchExtenAcc($table[0], $start, $end, null,2);
             for ($i = 1; $i < sizeof($table); $i++) {
-                $hisAccUse = $this->getExtendAcc($table[$i], $start, $end, $hisAccUse1,3);
+                $exten_acc2 = $this->getSearchExtenAcc($table[$i], $start, $end, $exten_acc1,3);
             }
+            $exten_acc = $exten_acc2->get();
         }
-        return $hisAccUse;
-
+        return $exten_acc;
     }
-
     public function extenAcc(){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
 //        $exten_acc = $this ->getHistoryRenew($dateend,$datenow,'','');
-        $exten_acc = $this->getQueryExtendAcc('','','','');
+        $exten_acc = $this->getHistoryRenew('2019-07-01','2019-08-31','','');
         return view('customer_service.exten_acc')->with('exten_acc',$exten_acc);
     }
 
@@ -603,30 +642,20 @@ class CustomerServiceController extends Controller
         $result = null;
         $user_id_sign_in = Auth::id();
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
-        $reg_tran = $this->getRegTransaction($start,$end,"",$name_use->first_name);
+        $reg_tran = $this->getQueryRegTransactions($start,$end,'','');
 
         foreach($reg_tran as $key => $value) {
             $result .= '<tr>';
             $result .= '<td>' . ($key + 1) . '</td>';
             $result .= '<td>' . $value->isdn . '</td>';
-            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+//            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+            $result .= '<td>'. $value->reg_datetime.'</td>';
             $result .= '<td>' . 'Đăng ký gói dịch vụ'. '</td>';
-            $result .= '<td>' . $value->packageCode . '</td>';
+            $result .= '<td>' . $value->package_code . '</td>';
             $result .= '</tr>';
         }
         return $result;
     }
-
-//    public function getSearchRegTran($time,$start, $end){
-//        $reg_tran = DB::table($time)
-//            -> select('isdn','reg_datetime','package_code')
-//            -> addSelect(DB::raw("'Đăng ký gói dịch vụ' as type"))
-//            -> where('request','=','SUB')
-//            -> whereNotNull('reg_datetime')
-//            -> whereBetween('reg_datetime',[$start,$end])
-//            -> get();
-//        return $reg_tran;
-//    }
 
     // Ajax search data User - UnReg
     public  function  SearchDateTimeUnRegTran(Request $request){
@@ -636,15 +665,16 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $unreg_tran = $this->getUnRegTransaction($start,$end,'');
+        $unreg_tran = $this->getQueryUnRegTransactions($start,$end,'','');
 
         foreach($unreg_tran as $key => $value) {
             $result .= '<tr>';
             $result .= '<td>' . ($key + 1) . '</td>';
             $result .= '<td>' . $value->isdn . '</td>';
-            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+//            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
+            $result .= '<td>' . $value->reg_datetime. '</td>';
             $result .= '<td> Hủy Dịch Vụ Gói</td>';
-            $result .= '<td>' . $value->packageCode . '</td>';
+            $result .= '<td>' . $value->package_code . '</td>';
             $result .= '</tr>';
         }
         return $result;
@@ -659,48 +689,34 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $momt = $this->getMOMT($start,$end,"");
+        $momt = $this->getQueryMOMT($start,$end,'','');
+
+        foreach ($momt as $value){
+            if($value->timeaction == null){
+                $value->result = "Không thành công";
+            }else{
+                $value->result = "Thành công";
+            }
+        }
 
         foreach($momt as $key => $value) {
-            if (count($value->joinDTOS) > 0) {
-                foreach ($value->joinDTOS as $valueDtos) {
-                $result .= '<tr>';
-                $result .= '<td>' . $value->groupCode . '</td>';
-                $result .= '<td>' . $value->isdn . '</td>';
-                $result .= '<td>' . substr($value->dateReceiveRequest, -17, 8) . ', ' . substr($value->dateReceiveRequest, 0, 10) . '</td>';
-                $result .= '<td>' . $value->commandCode . '</td>';
-                    $result .= '<td>' . substr($valueDtos->timerequest, -17, 8) . ', ' . substr($valueDtos->timerequest, 0, 10) . '</td>';
-                    $result .= '<td>' . $valueDtos->content . '</td>';
-                    $result .= '<td>Thành Công</td>';
-                    $result .= '<td><a href="#" class="btn dropdown-item">
-                                            <i class="fas fa-edit"> Gửi lại</i>
-                                        </a></td>';
-                    $result .= '</tr>';
-                }
-            } else {
-                $result .= '<tr>';
-                $result .= '<td>' . $value->groupCode . '</td>';
-                $result .= '<td>' . $value->isdn . '</td>';
-                $result .= '<td>' . substr($value->dateReceiveRequest, -17, 8) . ', ' . substr($value->dateReceiveRequest, 0, 10) . '</td>';
-                $result .= '<td>' . $value->commandCode . '</td>';
-                $result .= '<td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>';
-                $result .= '</tr>';
-            }
+            $result .= '<tr>';
+            $result .= '<td>' . $value->username . '</td>';
+            $result .= '<td>' . $value->isdn . '</td>';
+            $result .= '<td>' . $value->timerequest . '</td>';
+            $result .= '<td>' . $value->command_code . '</td>';
+            $result .= '<td>' . $value->timeaction . '</td>';
+            $result .= '<td style="-webkit-line-clamp: 3;overflow : hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-box-orient: vertical">'
+                . $value->content . '</td>';
+            $result .= '<td>' . $value->result . '</td>';
+            $result .= '<td><a href="#" class="btn dropdown-item">
+                        <i class="fas fa-edit"> Gửi lại</i>
+                        </a></td>';
+            $result .= '</tr>';
         }
         return $result;
     }
 
-    public function getSearchMOMT($time,$start,$end){
-        $momt = DB::table($time)
-            ->select('username', 'isdn', 'timerequest', 'command_code', 'timeaction', 'content')
-            ->addSelect(DB::raw("'null' as result"))
-            ->whereBetween('timerequest', [$start, $end])
-            ->get();
-        return $momt;
-    }
 
     public  function SearchDateTimeHisAcc(Request $request){
         $startEnd = $request->startEnd;
@@ -709,7 +725,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $history_acc = $this->getSearchTimeHisAcc('cdr_201908',$start,$end);
+        $history_acc = $this->getQueryHistoryAcc($start,$end,'','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -742,19 +758,6 @@ class CustomerServiceController extends Controller
         return $result;
     }
 
-    public  function  getSearchTimeHisAcc($time,$start,$end){
-
-        $history_acc = DB::table($time)
-            -> select('isdn','reg_datetime','request','package_code','message_send','channel','charge_price')
-            -> whereNotNull('reg_datetime')
-            -> whereBetween('reg_datetime',[$start,$end])
-            -> where(function ($query){
-                $query -> where('request','=','SUB')
-                    -> orWhere('request','=','GH');
-            })
-            -> get();
-        return $history_acc;
-    }
 
     /*
      * Ajax to search history Acc use Data
@@ -766,7 +769,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $history_acc = $this->getDataHistoryAccUse($start,$end,'','');
+        $history_acc = $this->getQueryHistoryAccUse($start,$end,'','');
 
         foreach ($history_acc as $value){
             if($value->message_send == null && $value->request != 'GH'){
@@ -891,75 +894,7 @@ class CustomerServiceController extends Controller
     }
 
 
-    /* Query date to database
-       input
-       $start, $end time
-       $time - name table
-       $exten - table to union
-       index - compare to select query
-    */
-    public function getSearchExtenAcc($time,$start,$end,$exten,$index){
-        if($index == 1){
-            $exten_acc = DB::table($time)
-                -> select('isdn','reg_datetime','package_code','channel','charge_price')
-                -> addSelect(DB::raw("'Gia Hạn' as type"))
-                -> addSelect(DB::raw("'Thành Công' as tt"))
-                -> where('request','=','GH')
-                -> whereBetween('reg_datetime',[$start,$end])
-                -> whereNotNull('reg_datetime')
-                -> get();
-            return $exten_acc;
-        }
-        if($index = 2){
-            $exten_acc = DB::table($time)
-                -> select('isdn','reg_datetime','package_code','channel','charge_price')
-                -> addSelect(DB::raw("'Gia Hạn' as type"))
-                -> addSelect(DB::raw("'Thành Công' as tt"))
-                -> where('request','=','GH')
-                -> whereBetween('reg_datetime',[$start,$end])
-                -> whereNotNull('reg_datetime');
-            return $exten_acc;
-        }else {
-            $exten_acc = DB::table($time)
-                ->select('isdn', 'reg_datetime', 'package_code', 'channel', 'charge_price')
-                ->addSelect(DB::raw("'Gia Hạn' as type"))
-                ->addSelect(DB::raw("'Thành Công' as tt"))
-                ->where('request', '=', 'GH')
-                ->whereBetween('reg_datetime', [$start, $end])
-                ->whereNotNull('reg_datetime')
-                ->union($exten)
-                ->get();
-            return $exten_acc;
-        }
-    }
 
-
-    /*  get History Renew with time
-        input
-        $start, $end, $phone , $username(maybe user)
-    */
-    public function getHistoryRenew($start ,$end ,$phone ,$username ){
-        date_default_timezone_set('Asia/Ho_Chi_Minh');
-        $datenow = date('Y-m-d');
-        $arrdate = explode("-",$datenow);
-        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
-        if($start != null && $end != null){
-            $table = $this->listTable($start,$end,'cdr_');
-        }else{
-            $table = $this->listTable($dateend,$datenow,'cdr_');
-        }
-        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
-            $exten_acc = $this->getSearchExtenAcc($table, $start, $end, null, 1);
-        }
-        else {
-            $exten_acc1 = $this->getSearchExtenAcc($table[0], $start, $end, null,2);
-            for ($i = 1; $i < sizeof($table); $i++) {
-                $exten_acc2 = $this->getSearchExtenAcc($table[$i], $start, $end, $exten_acc1,3);
-            }
-            $exten_acc = $exten_acc2->get();
-        }
-        return $exten_acc;
-    }
 
     public function  HistoryLog(){
         $history_log = DB::table('history_action')
@@ -1032,13 +967,11 @@ class CustomerServiceController extends Controller
             }else {
                 if ($request['day'] == 'day') {
                     for ($i = 0; $i < sizeof($phone);$i ++) {
-                        $this->userRegs($phone[$i],$channel[$i],$chargePrice[$i],$commandCode[$i],$endDatetime[$i],$expireDatetime[$i],$groupCode[$i],$packageCode[$i],$regDatetime[$i],$staDatetime[$i]);
-//                        $this->subDayWithPhone($phone[$i]);
+                        $this->subDayWithPhone($phone[$i],$channel[$i],$chargePrice[$i],$commandCode[$i],$endDatetime[$i],$expireDatetime[$i],$groupCode[$i],$packageCode[$i],$regDatetime[$i],$staDatetime[$i]);
                     }
                 } else {
                     for ($i = 0; $i < sizeof($phone);$i ++) {
-                        $this->userRegs($phone[$i],$channel[$i],$chargePrice[$i],$commandCode[$i],$endDatetime[$i],$expireDatetime[$i],$groupCode[$i],$packageCode[$i],$regDatetime[$i],$staDatetime[$i]);
-//                        $this->subWeekWithPhone($phone[$i]);
+                        $this->subWeekWithPhone($phone[$i],$channel[$i],$chargePrice[$i],$commandCode[$i],$endDatetime[$i],$expireDatetime[$i],$groupCode[$i],$packageCode[$i],$regDatetime[$i],$staDatetime[$i]);
                     }
                 }
             }
@@ -1046,40 +979,83 @@ class CustomerServiceController extends Controller
         }
     }
 
-    public function userRegs($phone,$channel,$chargePrice,$commandCode,$endDatetime,$expireDatetime,$groupCode,$packageCode,$regDatetime,$staDatetime){
-        $data = array(
-            "channel" => $channel,
-            "chargePrice" => $chargePrice,
-            "commandCode" => $commandCode,
-            "endDatetime" => $endDatetime,
-            "expireDatetime" => $expireDatetime,
-            "groupCode" => $groupCode,
-            "isdn" => $phone,
-            "messageSend" => "",
-            "orgRequest" => "string",
-            "packageCode" => $packageCode,
-            "regDatetime" => $regDatetime,
-            "serviceCode" => "",
-            "staDatetime" => $staDatetime,
-            "status" => 0
-        );
-        $data_string = json_encode($data);
 
-        $curl = curl_init('http://192.168.100.4:9000/api/user-regs');
+    public function  subDayWithPhone($phone ,$channel,$chargePrice,$commandCode,$endDatetime,$expireDatetime,$groupCode,$packageCode,$regDatetime,$staDatetime){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $date = date('Y-m-d H:i:s');
+        $time = explode("-",$date);
+        $table = 'cdr_'.$time[0].$time[1];
 
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
-        );
+        $table_user = 'user_g_'.$phone[strlen($phone)-1];
 
-        $result = curl_exec($curl);
-        $dd = json_decode($result);
-        curl_close($curl);
+        $createSubDay_user = DB::table($table_user)->insert([
+            'isdn' => $phone,
+            'service_code' => null,
+            'group_code' => $groupCode,
+            'package_code' => $packageCode,
+            'command_code' => $commandCode,
+            'reg_datetime' => $regDatetime,
+            'sta_datetime' => $regDatetime,
+            'end_datetime' => $endDatetime,
+            'expire_datetime' => $expireDatetime,
+            'status' => 1,
+            'channel' => $channel,
+            'charge_price' => $chargePrice,
+            'message_send' => "(DK) Chúc mừng Quý khách đã đăng ký thành công gói ngày(G) – Chơi Game PubG Mobile Miễn phí cước 3G/4G của dịch vụ gameOn. Gói cước tự động gia hạn. Để hủy dịch vụ, soạn HUY G gửi 9129. Chi tiết truy cập http://game.freedata.vn/pubgm hoặc gọi 9090. Giá cước 2000đ/ngày. Trân trọng cảm ơn!",
+            'org_request' => "Dk g",
+        ]);
+
+
+        $createSubDay = DB::table($table)->insert([
+            'isdn' => $phone,
+            'request' => "SUB",
+            'service_code' => null,
+            'group_code' => $groupCode,
+            'package_code' => $packageCode,
+            'command_code' => $commandCode,
+            'reg_datetime' => $regDatetime,
+            'sta_datetime' => $staDatetime,
+            'end_datetime' => $endDatetime,
+            'expire_datetime' => $expireDatetime,
+            'status' => 1,
+            'channel' => $channel,
+            'charge_price' => $chargePrice,
+            'message_send' => "(DK) Chúc mừng Quý khách đã đăng ký thành công gói ngày(G) – Chơi Game PubG Mobile Miễn phí cước 3G/4G của dịch vụ gameOn. Gói cước tự động gia hạn. Để hủy dịch vụ, soạn HUY G gửi 9129. Chi tiết truy cập http://game.freedata.vn/pubgm hoặc gọi 9090. Giá cước 2000đ/ngày. Trân trọng cảm ơn!",
+            'org_request' => "Dk g",
+            'date_receive_request' => $date
+        ]);
+
+        return $createSubDay;
     }
+
+    public function subWeekWithPhone($phone,$channel,$chargePrice,$commandCode,$endDatetime,$expireDatetime,$groupCode,$packageCode,$regDatetime,$staDatetime){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $date = date('Y-m-d H:i:s');
+
+        $time = explode("-",$date);
+        $table = 'cdr_'.$time[0].$time[1];
+
+        $createSubWeek = DB::table('cdr_201908')->insert([
+            'isdn' => $phone,
+            'request' => "SUB",
+            'service_code' => null,
+            'group_code' => $groupCode,
+            'package_code' => $packageCode,
+            'command_code' => $commandCode,
+            'reg_datetime' => $regDatetime,
+            'sta_datetime' => $staDatetime,
+            'end_datetime' => $endDatetime,
+            'expire_datetime' => $expireDatetime,
+            'status' => 1,
+            'channel' => $channel,
+            'charge_price' => $chargePrice,
+            'message_send' => "(DK) Chúc mừng Quý khách đã đăng ký thành công gói ngày(G) – Chơi Game PubG Mobile Miễn phí cước 3G/4G của dịch vụ gameOn. Gói cước tự động gia hạn. Để hủy dịch vụ, soạn HUY G gửi 9129. Chi tiết truy cập http://game.freedata.vn/pubgm hoặc gọi 9090. Giá cước 2000đ/ngày. Trân trọng cảm ơn!",
+            'org_request' => "Dk g",
+            'date_receive_request' => $date
+        ]);
+        return $createSubWeek;
+    }
+
 
     public function DoUploadToUnSub(Request $request){
         //Kiểm tra file
@@ -1102,33 +1078,17 @@ class CustomerServiceController extends Controller
             unlink('../public/upload_file/'.$name);
 //            dd($csv);
             $phone = [];
-            $channel = [];
-            $chargePrice = [];
-            $commandCode = [];
-            $endDatetime = [];
-            $expireDatetime = [];
-            $groupCode = [];
             $packageCode = [];
-            $regDatetime = [];
-            $staDatetime = [];
 
             $patern = '/[0-9]{10}/';
             foreach ($csv as $value){
                 if (preg_match($patern,$value[1])) {
                     array_push($phone, $value[1]);
-                    array_push($channel,$value[2]);
-                    array_push($chargePrice,$value[3]);
-                    array_push($commandCode,$value[4]);
-                    array_push($endDatetime,$value[5]);
-                    array_push($expireDatetime,$value[6]);
-                    array_push($groupCode,$value[7]);
-                    array_push($packageCode,$value[8]);
-                    array_push($regDatetime,$value[9]);
-                    array_push($staDatetime,$value[10]);
+                    array_push($packageCode,$value[2]);
                 }
             }
             for ($i = 0; $i < sizeof($phone);$i ++){
-                $this->userRegs($phone[$i],$channel[$i],$chargePrice[$i],$commandCode[$i],$endDatetime[$i],$expireDatetime[$i],$groupCode[$i],$packageCode[$i],$regDatetime[$i],$staDatetime[$i]);
+                $this->userRegs($phone[$i],$packageCode[$i]);
 
             }
 
@@ -1141,26 +1101,19 @@ class CustomerServiceController extends Controller
         }
     }
 
-    public function userUnRegs($phone,$channel,$chargePrice,$commandCode,$endDatetime,$expireDatetime,$groupCode,$packageCode,$regDatetime,$staDatetime){
+    public function userUnRegs($phone,$packageCode){
         $data = array(
-            "channel" => $channel,
-            "chargePrice" => $chargePrice,
-            "commandCode" => $commandCode,
-            "endDatetime" => $endDatetime,
-            "expireDatetime" => $expireDatetime,
-            "groupCode" => $groupCode,
-            "isdn" => $phone,
-            "messageSend" => "",
-            "orgRequest" => "string",
-            "packageCode" => $packageCode,
-            "regDatetime" => $regDatetime,
-            "serviceCode" => "",
-            "staDatetime" => $staDatetime,
-            "status" => 0
+            "ISDN" => $phone,
+            "ServiceCode" => '9129',
+            "CommandCode" => 'HUY_G',
+            "PackageCode" => $packageCode,
+            "SourceCode" => 'CP',
+            "User" => 'GAMEON',
+            "Password" => 'Gameon@132',
         );
         $data_string = json_encode($data);
 
-        $curl = curl_init('http://192.168.100.4:9000/api/user-cancels');
+        $curl = curl_init('http://10.54.3.37:8888/cms-unregister');
 
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);

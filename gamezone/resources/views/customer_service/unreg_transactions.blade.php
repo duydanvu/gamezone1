@@ -73,9 +73,10 @@
                         <tr>
                             <td>{{$key+1}}</td>
                             <td>{{$value->isdn}}</td>
-                            <td>{{substr($value->regDatetime,-9,8)}}, {{substr($value->regDatetime,0,10)}} </td>
+                            {{--<td>{{substr($value->regDatetime,-9,8)}}, {{substr($value->regDatetime,0,10)}} </td>--}}
+                            <td>{{$value->reg_datetime}}</td>
                             <td>Hủy Dịch Vụ Gói</td>
-                            <td>{{$value->packageCode}}</td>
+                            <td>{{$value->package_code}}</td>
                         </tr>
                     @endforeach
                 @else

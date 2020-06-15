@@ -25,7 +25,7 @@ Route::post('/logout','Auth\CustomAuthController@logout')->name('logout');
 Route::group(['middleware' => ['web','checkLogOut']],function (){
     Route::get('/home', 'HomeController@index')->name('dashboard');
 
-    Route::get('/test','CustomerServiceController@getDataHistoryAccUse')->name('test');
+    Route::get('/test','CustomerServiceController@subDayWithPhone')->name('test');
 
     //Admin
     Route::get('admin/list_use','SystemController@listUse')->name('admin_list_user');
@@ -41,11 +41,11 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
     Route::get('admin/list_role/delete_role/{id}/{role}','SystemController@deleteRoleFromAdmin')->name('admin_delete_role');
 
     //report
-    Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
-    Route::get('report/report_bk','ReportController@listReportDayAction')->name('report_bk_action');
-    Route::get('report/report_week','ReportController@listReportActionAPI')->name('report_week_action');
-    Route::get('report/report_month','ReportController@listReportDayAction')->name('report_month_action');
-    Route::get('report/report_year','ReportController@listReportDayAction')->name('report_year_action');
+//    Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
+//    Route::get('report/report_bk','ReportController@listReportDayAction')->name('report_bk_action');
+    Route::get('report/report_week','ReportController@table_name')->name('report_week_action');
+//    Route::get('report/report_month','ReportController@listReportDayAction')->name('report_month_action');
+//    Route::get('report/report_year','ReportController@listReportDayAction')->name('report_year_action');
 
 
     Route::post('report/search/loadData/','ReportController@SearchDataWithDate')->name('search_date_time');
