@@ -80,7 +80,6 @@
                 </thead>
                 <tbody id="table_body">
                 @if ( count($total) > 0)
-                    @foreach($sum as $valuesum)
                         @foreach($total as $key => $value)
                         <tr>
                             <td>{{$key+1}}</td>
@@ -90,14 +89,13 @@
                             <td>{{$value->acc_unsub_stm}}</td>
                             <td>{{$value->acc_psc}}</td>
                             <td>{{$value->acc_active}}</td>
-                            <td>{{round( ($value->acc_gh/$valuesum->sum)*100 ,3) }} %</td>
+                            <td>{{round( ($value->acc_gh/$sum)*100 ,3) }} %</td>
                             <td>{{$value->acc_dk_sms}}</td>
                             <td>{{$value->acc_dk_vasgate}}</td>
                             <td>{{$value->acc_dk_wap}}</td>
                             <td>{{$value->acc_dk_sms + $value->acc_dk_vasgate + $value->acc_dk_wap}}</td>
                         </tr>
                         @endforeach
-                    @endforeach
                 @else
                     <td colspan="8" style="text-align: center">
                         <h3>Empty Pool Action</h3>

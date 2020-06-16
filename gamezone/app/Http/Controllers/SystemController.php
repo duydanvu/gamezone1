@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Validator;
 
 class SystemController extends Controller
 {
+    /*
+     * danh sách các tài khoản có thể đăng nhập
+     */
     public function listUse(){
         $user_id_sign_in = Auth::id();
         $list_use = DB::table('manager_user')->get();
@@ -36,13 +39,17 @@ class SystemController extends Controller
         }
         return view('System.system_list')->with(['list_use'=>$list_use,'role_use_number'=>$role_use_number]);
     }
-
+    /*
+     * hiển thị thông tin tài khoản để update
+     */
     public function updateUseView($id){
         $data = DB::table('manager_user')
             ->find($id);
         return view('System.infor_use')->with('data',$data);
     }
-
+    /*
+     * cập nhật thông tin tài khoản với những request trả về
+     */
     public function updateUseViewInfor(Request  $request){
         $id_auth = Auth::id();
         $user_update = DB::table('manager_user')
@@ -84,7 +91,9 @@ class SystemController extends Controller
         }
         return Redirect::back()->with($notification);
     }
-
+    /*
+     * đăng ký một tài khoản đăng nhập mới
+     */
     public function registerProcess(Request $request){
         $validator = Validator::make($request->all(), [
             'txtName' => 'required|max:50',
@@ -131,7 +140,9 @@ class SystemController extends Controller
         return Redirect::back()->with($notification);
 
     }
-
+    /*
+     * xóa tài khản đăng nhập theo id
+     */
     public function deleteUseView($id){
         $data = DB::table('manager_user')
                 ->delete($id);
@@ -148,7 +159,9 @@ class SystemController extends Controller
         }
         return Redirect::back()->with($notification);
     }
-
+    /*
+     * xem phân quyền của tài khoản
+     */
     public function viewRoleUse(){
         $data = DB::table('manager_user')
                 ->join('manager_user_authority','manager_user_authority.user_id','=','manager_user.id')
@@ -183,7 +196,9 @@ class SystemController extends Controller
         }
         return view('System.role_use_list')->with(['data'=>$data,'role_use_number'=>$role_use_number,'acc_not_role'=>$acc_not_role]);
     }
-
+    /*
+     * hiển thị phân quyền của tài khoản
+     */
     public function updateRoleView($id){
         $data = DB::table('manager_user_authority')
                 ->where('user_id','=',$id)
@@ -205,7 +220,9 @@ class SystemController extends Controller
         }
         return view('System.add_role')->with(['role_admin'=>$role_admin,'role_user'=>$role_user, 'id'=>$id]);
     }
-
+    /*
+     * cập nhật phân quyền cho tài khoản
+     */
     public function updateRoleViewInfor(Request $request){
 
         $data = DB::table('manager_user')
@@ -267,12 +284,16 @@ class SystemController extends Controller
         return Redirect::back()->with($notification);
 
     }
-
+    /*
+     * hiển thị role view của tài khoản
+     */
     public function addRoleView($id){
         $data = DB::table('manager_user')->find($id);
         return view('System.add_role_new')->with('data',$data);
     }
-
+    /*
+     * thêm các role cho tài khoản
+     */
     public function addRoleViewInfor(Request $request){
         if($request['roleAdmin'] != null && $request['roleUser'] != null){
             DB::table('manager_user_authority')->insert([
@@ -303,7 +324,9 @@ class SystemController extends Controller
         return Redirect::back()->with($notification);
 
     }
-
+    /*
+     * xóa role cho tài khoản
+     */
     public  function deleteRoleFromAdmin($id,$role){
         $delete_role = DB::table('manager_user_authority')
                         ->where('user_id','=',$id)

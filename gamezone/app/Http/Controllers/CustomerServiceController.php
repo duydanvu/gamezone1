@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,9 @@ use Illuminate\Support\Facades\Redirect;
 
 class CustomerServiceController extends Controller
 {
+    /*
+     * trả về một loạt các tên bảng cần thiết để truy vấn database
+     */
     public function listTable($from ,$to ,$nameSub){
         if(substr($from,0,4) == substr($to,0,4)){
             if(substr($from,5,2) < substr($to,5,2)){
@@ -100,15 +104,24 @@ class CustomerServiceController extends Controller
 
     }
 
+    /*
+     * Trả về View Giao dịch đăng ký
+     */
     public function regTransactions(){
         $user_id_sign_in = Auth::id();
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
         date_default_timezone_set('Asia/Ho_Chi_Minh');
-        $reg_tran = $this->getQueryRegTransactions("2019-07-01","2019-08-31","",$name_use->first_name);
+        try {
+            $reg_tran = $this->getQueryRegTransactions("2019-07-01", "2019-08-31", "", $name_use->first_name);
+        }catch (QueryException $ex){
+            $reg_tran = [];
+        }
 //        $reg_tran = $this->getQueryRegTransactions("","","",$name_use->first_name);
         return view('customer_service.reg_transactions')->with('reg_tran',$reg_tran);
     }
-
+    /*
+     * Gọi Query để tìm kiếm các giao dịch đăng ký
+     */
     public function getQueryRegTransactions($start  ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
@@ -131,7 +144,9 @@ class CustomerServiceController extends Controller
         return $regTran_acc;
 
     }
-
+    /*
+     * thực hiện tra cứu database các giao dịch đăng ký
+     */
     public function getRegTransaction($table,$start,$end,$regtb,$index){
         if($index = 1){
             $reg_tran = DB::table($table)
@@ -162,16 +177,24 @@ class CustomerServiceController extends Controller
             return $reg_tran;
         }
     }
-
+    /*
+     * Trả về view Giao dịch hủy
+     */
     public function unregTransactions(){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
-        $unreg_tran = $this->getQueryUnRegTransactions('2019-07-01','2019-08-31',"",'');
+        try {
+            $unreg_tran = $this->getQueryUnRegTransactions('2019-07-01', '2019-08-31', "", '');
+        }catch (QueryException $ex){
+            $unreg_tran = [];
+        }
         return view('customer_service.unreg_transactions')->with('unreg_tran',$unreg_tran);
     }
-
+    /*
+     * Gọi Query để tìm kiếm các giao dịch hủy
+     */
     public function getQueryUnRegTransactions($start  ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
@@ -194,7 +217,9 @@ class CustomerServiceController extends Controller
         return $unregTran_acc;
 
     }
-
+    /*
+     * Thực hiện tra cứu database các giao dịch hủy
+     */
     public function getUnRegTransaction($table,$start,$end,$unRegTran,$index){
         if($index = 1){
             $unreg_tran = DB::table($table)
@@ -226,23 +251,31 @@ class CustomerServiceController extends Controller
         }
 
     }
-
+    /*
+     * Trả về view Giao dịch MOMT
+     */
     public function moMt(){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
-        $momt = $this -> getQueryMOMT('2019-07-01','2019-08-31','','');
-        foreach ($momt as $value){
-            if($value->timeaction == null){
-                $value->result = "Không thành công";
-            }else{
-                $value->result = "Thành công";
+        try {
+            $momt = $this->getQueryMOMT('2019-07-01', '2019-08-31', '', '');
+            foreach ($momt as $value) {
+                if ($value->timeaction == null) {
+                    $value->result = "Không thành công";
+                } else {
+                    $value->result = "Thành công";
+                }
             }
+        } catch (QueryException $ex){
+            $momt = [];
         }
         return view('customer_service.momt')->with('momt',$momt);
     }
-
+    /*
+     * Gọi các query tìm kiếm giao dịch MOMT
+     */
     public function getQueryMOMT($start  ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
@@ -265,7 +298,9 @@ class CustomerServiceController extends Controller
         return $momt;
 
     }
-
+    /*
+     * thực hiện tra cứu database các giao dịch MOMT
+     */
     public function getMOMT($table,$start,$end,$momt_0,$index){
         if($index = 1){
             $momt = DB::table($table)
@@ -291,30 +326,39 @@ class CustomerServiceController extends Controller
         }
 
     }
-
+    /*
+     * Trả view tra cứu lịch sử gói cước
+     */
     public function historyAccount(){
-        $history_acc = $this->getQueryHistoryAcc('2019-07-01','2019-08-31','','');
+        try {
+            $history_acc = $this->getQueryHistoryAcc('2019-07-01', '2019-08-31', '', '');
 
-        foreach ($history_acc as $value){
-            if($value->message_send == null && $value->request != 'GH'){
-                $value->message_send = "Không thành công";
-            }else{
-                $value->message_send = "Thành công";
-            }
-        }
-
-        foreach ($history_acc as $value){
-            if ($value->request == 'SUB'){
-                $value->request = "Đăng ký gói cước";
-            }else{
-                $value->request = "Gia hạn gói cước";
+            foreach ($history_acc as $value) {
+                if ($value->message_send == null && $value->request != 'GH') {
+                    $value->message_send = "Không thành công";
+                } else {
+                    $value->message_send = "Thành công";
+                }
             }
 
+            foreach ($history_acc as $value) {
+                if ($value->request == 'SUB') {
+                    $value->request = "Đăng ký gói cước";
+                } else {
+                    $value->request = "Gia hạn gói cước";
+                }
+
+            }
+        } catch (QueryException $ex){
+            $history_acc = [];
         }
 
         return view('customer_service.history_trucuoc')->with('history_acc',$history_acc);
     }
 
+    /*
+     * Gọi các query để tra cứu lịch sử gói cước
+     */
     public function getQueryHistoryAcc($start  ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
@@ -337,7 +381,9 @@ class CustomerServiceController extends Controller
         return $hisAcc;
 
     }
-
+    /*
+     * thực hiện các query database để tra cứu lịch sử gói cước
+     */
     public function getHistoryAccout($table,$start,$end,$his_acc_0,$index){
         if($index = 1){
             $history_acc = DB::table($table)
@@ -374,7 +420,9 @@ class CustomerServiceController extends Controller
             return $history_acc;
         }
     }
-
+    /*
+     * Thực hiện các Query database để tra cứu lịch sử sử dụng gói cước
+     */
     public function getHistoryAccountUse($table,$start,$end,$his_acc_use_0,$index){
         if($index = 1){
             $history_acc = DB::table($table)
@@ -399,7 +447,9 @@ class CustomerServiceController extends Controller
             return $history_acc;
         }
     }
-
+    /*
+     * Gọi các query để tra cứu lịch sử sử dụng gói cước
+     */
     public function getQueryHistoryAccUse($start  ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
@@ -423,28 +473,35 @@ class CustomerServiceController extends Controller
 
     }
 
+    /*
+     * Trả về view chứa các thông tin về lịch sử sử dụng
+     */
     public function historyAccountUse(){
 
 //        $history_acc = $this->getDataHistoryAccUse();
-        $history_acc = $this->getQueryHistoryAccUse('2019-07-01','2019-08-31','','');
+        try {
+            $history_acc = $this->getQueryHistoryAccUse('2019-07-01', '2019-08-31', '', '');
 
-        foreach ($history_acc as $value){
-            if($value->message_send == null && $value->request != 'GH'){
-                $value->message_send = "Không thành công";
-            }else{
-                $value->message_send = "Thành công";
-            }
-        }
-
-        foreach ($history_acc as $value){
-            if ($value->request == 'SUB'){
-                $value->request = "Đăng ký gói cước";
-            }else if ($value->request == 'GH'){
-                $value->request = "Gia hạn gói cước";
-            }else{
-                $value->request = "Hủy gói cước";
+            foreach ($history_acc as $value) {
+                if ($value->message_send == null && $value->request != 'GH') {
+                    $value->message_send = "Không thành công";
+                } else {
+                    $value->message_send = "Thành công";
+                }
             }
 
+            foreach ($history_acc as $value) {
+                if ($value->request == 'SUB') {
+                    $value->request = "Đăng ký gói cước";
+                } else if ($value->request == 'GH') {
+                    $value->request = "Gia hạn gói cước";
+                } else {
+                    $value->request = "Hủy gói cước";
+                }
+
+            }
+        } catch (QueryException $ex){
+            $history_acc = [];
         }
         return view('customer_service.history_acc_use')->with('history_acc_use',$history_acc);
     }
@@ -493,9 +550,8 @@ class CustomerServiceController extends Controller
     }
 
 
-    /*  get History Renew with time
-        input
-        $start, $end, $phone , $username(maybe user)
+    /*
+    *   Gọi các query để trả về lịch sử gia hạn
     */
     public function getHistoryRenew($start ,$end ,$phone ,$username ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
@@ -519,41 +575,126 @@ class CustomerServiceController extends Controller
         }
         return $exten_acc;
     }
+    /*
+     * Trả về view lịch sử gia hạn
+     */
     public function extenAcc(){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
         $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
 //        $exten_acc = $this ->getHistoryRenew($dateend,$datenow,'','');
-        $exten_acc = $this->getHistoryRenew('2019-07-01','2019-08-31','','');
+        try {
+            $exten_acc = $this->getHistoryRenew('2019-07-01', '2019-08-31', '', '');
+        }catch (QueryException $ex){
+            $exten_acc = [];
+        }
         return view('customer_service.exten_acc')->with('exten_acc',$exten_acc);
     }
-
-    public  function getDistinctPhone($time){
-        $subUnsub_acc_phone = DB::table($time)
-            -> select(DB::raw('DISTINCT isdn'))
-            -> whereNotNull('isdn')
-            -> get();
-        return $subUnsub_acc_phone;
+    /*
+     * Trả về danh sách sdt riêng biệt
+     */
+    public  function getDistinctPhone($table,$start,$end,$distinct_phone_0,$index){
+        if($index == 1){
+            $subUnsub_acc_phone = DB::table($table)
+                -> select(DB::raw('DISTINCT isdn'))
+                -> whereNotNull('isdn')
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> get();
+            return $subUnsub_acc_phone;
+        }else if ($index == 2){
+            $subUnsub_acc_phone = DB::table($table)
+                -> select(DB::raw('DISTINCT isdn'))
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> whereNotNull('isdn');
+            return $subUnsub_acc_phone;
+        }else{
+            $subUnsub_acc_phone = DB::table($table)
+                -> select(DB::raw('DISTINCT isdn'))
+                -> whereNotNull('isdn')
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> union($distinct_phone_0)
+                -> get();
+            return $subUnsub_acc_phone;
+        }
+    }
+    /*
+     * Lấy ra danh sách thông tin tài khoản
+     */
+    public  function getListPhone($table,$start,$end,$listPhone_0,$index){
+        if($index == 1){
+            $infor_phone = DB::table($table)
+                -> select('id','isdn','package_code','channel','sta_datetime','expire_datetime','end_datetime','request')
+                -> addSelect(DB::raw("'Không có gói cước' as tt"))
+                -> addSelect(DB::raw("'Không' as gh"))
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> orderBy('id','DESC')
+                -> get();
+            return $infor_phone;
+        }elseif ($index == 2){
+            $infor_phone = DB::table($table)
+                -> select('id','isdn','package_code','channel','sta_datetime','expire_datetime','end_datetime','request')
+                -> addSelect(DB::raw("'Không có gói cước' as tt"))
+                -> addSelect(DB::raw("'Không' as gh"))
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> orderBy('id','DESC');
+            return $infor_phone;
+        }else{
+            $infor_phone = DB::table($table)
+                -> select('id','isdn','package_code','channel','sta_datetime','expire_datetime','end_datetime','request')
+                -> addSelect(DB::raw("'Không có gói cước' as tt"))
+                -> addSelect(DB::raw("'Không' as gh"))
+                -> whereBetween('reg_datetime',[$start,$end])
+                -> union ($listPhone_0)
+                -> orderBy('id','DESC')
+                -> get();
+            return $infor_phone;
+        }
     }
 
-    public  function getListInforPhone($time,$isdn){
-        $infor_phone = DB::table($time)
-            -> select('id','isdn','package_code','channel','sta_datetime','expire_datetime','end_datetime','request')
-            -> addSelect(DB::raw("'Không có gói cước' as tt"))
-            -> addSelect(DB::raw("'Không' as gh"))
-            -> where('isdn','=',$isdn)
-            -> orderBy('id','DESC')
-            -> first();
+    /*
+     * Thực hiện gọi các câu lệnh query để tìm kiếm thông tin thuê bao
+     */
+    public function getQueryInforAcc($start ,$end ,$phone ,$username,$functionQuery ){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
+        if($start != null && $end != null){
+            $table = $this->listTable($start,$end,'cdr_');
+        }else{
+            $table = $this->listTable($dateend,$datenow,'cdr_');
+        }
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
+            $exten_acc = $this->$functionQuery($table, $start, $end, null, 1);
+        }
+        else {
+            $exten_acc1 = $this->$functionQuery($table[0], $start, $end, null,2);
+            for ($i = 1; $i < sizeof($table); $i++) {
+                $exten_acc = $this->$functionQuery($table[$i], $start, $end, $exten_acc1,3);
+            }
+        }
+        return $exten_acc;
+    }
+    /*
+     * Lấy ra thông tin từ của tài khoản được tìm thấy đầu tiên trong danh sách
+     */
+    public  function getListInforPhone($listPhone,$isdn){
+        $infor_phone = $listPhone -> where('isdn','=',$isdn)->first();
         return $infor_phone;
     }
-
+    /*
+     * Trả về view đăng ký / hủy dịch vụ
+     */
     public  function subUnSubAcc(){
-        $subUnsub_acc_phone = $this->getDistinctPhone('cdr_201908');
+        $subUnsub_acc_phone = $this->getQueryInforAcc('2019-07-01','2019-08-31','','','getDistinctPhone');
+        $getlistPhone = $this->getQueryInforAcc('2019-07-01','2019-08-31','','','getListPhone');
         $result = [];
         foreach ($subUnsub_acc_phone as $key => $value){
-            $infor_phone = $this->getListInforPhone('cdr_201908',$value->isdn);
-            $result[$key] = $infor_phone;
+            foreach ($getlistPhone as $value2) {
+                $infor_phone = $this->getListInforPhone($getlistPhone, $value->isdn);
+                $result[$key] = $infor_phone;
+            }
         }
         foreach ($result as $value){
             if($value->request == 'GH' ){
@@ -574,7 +715,9 @@ class CustomerServiceController extends Controller
 //        dd($result);
         return view('customer_service.sub_unsub_acc')->with('sub_unsub',$result);
     }
-
+    /*
+     * View thông tin đăng ký / hủy dv
+     */
     public function subUnSubViewUpdate($id,$epiTime){
         $arr = explode("-",$epiTime);
         $name_table = 'cdr_'.$arr[0].$arr[1];
@@ -582,7 +725,9 @@ class CustomerServiceController extends Controller
             ->find($id);
         return view('customer_service.infor_acc')->with('data',$data);
     }
-
+    /*
+     * update thông tin insert vào bảng cdr trong đăng ký hủy dv
+     */
     public function subUnSubUpdateRequest(Request $request){
         $data = DB::table('cdr_201908')->find($request->account_id);
         if($request->account_request == "GH" || $request->account_request == "SUB"){
@@ -892,9 +1037,7 @@ class CustomerServiceController extends Controller
         }
         return $result;
     }
-
-
-
+    
 
     public function  HistoryLog(){
         $history_log = DB::table('history_action')

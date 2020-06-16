@@ -25,7 +25,7 @@ Route::post('/logout','Auth\CustomAuthController@logout')->name('logout');
 Route::group(['middleware' => ['web','checkLogOut']],function (){
     Route::get('/home', 'HomeController@index')->name('dashboard');
 
-    Route::get('/test','CustomerServiceController@subDayWithPhone')->name('test');
+    Route::get('/test','ReportController@SearchDateTime')->name('test');
 
     //Admin
     Route::get('admin/list_use','SystemController@listUse')->name('admin_list_user');
@@ -43,12 +43,12 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
     //report
 //    Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
 //    Route::get('report/report_bk','ReportController@listReportDayAction')->name('report_bk_action');
-    Route::get('report/report_week','ReportController@table_name')->name('report_week_action');
+    Route::get('report/report_week','ReportController@listReportDayAction')->name('report_week_action');
 //    Route::get('report/report_month','ReportController@listReportDayAction')->name('report_month_action');
 //    Route::get('report/report_year','ReportController@listReportDayAction')->name('report_year_action');
 
 
-    Route::post('report/search/loadData/','ReportController@SearchDataWithDate')->name('search_date_time');
+    Route::post('report/search/loadData/','ReportController@SearchDateTime')->name('search_date_time');
 
     //Customer service
     Route::get('cussv/reg_tran','CustomerServiceController@regTransactions')->name('cus_sv_reg');

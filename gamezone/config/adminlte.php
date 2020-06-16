@@ -211,10 +211,10 @@ return [
                     'text' => 'Phân Quyền',
                     'url'  => 'admin/list_role/view',
                 ],
-                [
-                    'text' => 'Cấu Hình',
-                    'url'  => '#',
-                ],
+//                [
+//                    'text' => 'Cấu Hình',
+//                    'url'  => '#',
+//                ],
             ],
         ],
 //        [
