@@ -838,28 +838,23 @@ class ReportController extends Controller
                 }
             }
         }
-        foreach ($total as $key => $value){
-            $array[$key] = $value ->date;
-            $array[$key] = $value ->acc_sub;
-            $array[$key] = $value->acc_unsub_pp;
-            $array[$key] = $value->acc_unsub_stm;
-            $array[$key] = $value->acc_psc;
-            $array[$key] = $value->acc_active;
-            $array[$key] = $value->acc_gh;
-            $array[$key] = $value->acc_dk_sms;
-            $array[$key] = $value->acc_dk_wap;
-            $array[$key] = $value->acc_dk_vasgate;
-        }
-        dd($array);
-        $fileCsv = fopen('../storage/app/public/member.csv', 'w+');
-        foreach ($total as $k=>$line) {
+        $total['data'] = $total;
+        $result = $total['data']-> transform(function ($item){
+           return (array)$item;
+        })->toArray();
+//        dd($result);
+        $fileCsv = fopen('../storage/app/public/report.csv', 'w+');
+        foreach ($result as $k=>$line) {
             if ($k == 0) {
-                fputcsv($fileCsv, key($line));
+                fputcsv($fileCsv, array_keys($line));
             }
-            fputcsv($fileCsv, value($line));
+            if($k != "data"){
+                fputcsv($fileCsv, array_values($line));
+            }
         }
+
         fclose($fileCsv);
-        $file = storage_path('app\public\member.csv');
+        $file = storage_path('app\public\report.csv');
         $file1 = file_get_contents($file);
         $filename=basename($file);
         $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
