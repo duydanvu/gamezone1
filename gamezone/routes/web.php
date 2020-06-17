@@ -44,9 +44,8 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
 //    Route::get('report/report_day','ReportController@listReportDayAction')->name('report_day_action');
 //    Route::get('report/report_bk','ReportController@listReportDayAction')->name('report_bk_action');
     Route::get('report/report_week','ReportController@listReportDayAction')->name('report_week_action');
-//    Route::get('report/report_month','ReportController@listReportDayAction')->name('report_month_action');
-//    Route::get('report/report_year','ReportController@listReportDayAction')->name('report_year_action');
 
+    Route::get('/report/list/export_file_csv/{datetime}','ReportController@exportFile')->name('export_to_file_csv');
 
     Route::post('report/search/loadData/','ReportController@SearchDateTime')->name('search_date_time');
 

@@ -42,6 +42,7 @@
             <div class="row">
                 <div class="col-12 col-md-12 col-sm-12">
                     <a href=" " type="submit" class="btn btn-default" >Refresh</a>
+                    <a type="submit" id="export_data"  class="btn btn-success btn-xs offset-lg-10" style="margin: auto" >export</a>
                     <button type="submit" id="fillter_date" class="btn btn-primary" style="float: right;">Filter</button>
                 </div>
             </div>
@@ -78,6 +79,20 @@
                     <th>Tổng đăng ký</th>
                 </tr>
                 </thead>
+                <tr>
+                    <td> Tổng </td>
+                    <td></td>
+                    <td>{{$total_sub}}</td>
+                    <td>{{$total_unsub_pp}}</td>
+                    <td>{{$total_unsub_stm}}</td>
+                    <td>{{$total_psc}}</td>
+                    <td>{{$total_active}}</td>
+                    <td></td>
+                    <td>{{$total_dk_sms}}</td>
+                    <td>{{$total_dk_vasgate}}</td>
+                    <td>{{$total_dk_wap}}</td>
+                    <td></td>
+                </tr>
                 <tbody id="table_body">
                 @if ( count($total) > 0)
                         @foreach($total as $key => $value)
@@ -126,6 +141,56 @@
                 format: 'MM/DD/YYYY'
             }
         });
+
+        $('#export_data').click(function () {
+            var datetimes = $('#date_range').val();
+            datetimes = datetimes.split('/').join('.');
+            datetimes = datetimes.split(' ').join('');
+            console.log(datetimes);
+            var url = "{{ route ('export_to_file_csv',['datetime' => ":datetime"])}}";
+            url = url.replace(':datetime', datetimes);
+            console.log(url);
+            window.location.href = url;
+        })
+
+        {{--$(document).ready(function(){--}}
+        {{--    $('#export_data').click(function () {--}}
+        {{--        let date_range = $('#date_range').val();--}}
+        {{--        let _token = $('meta[name="csrf-token"]').val();--}}
+        {{--        var startEnd = $("#date_range").val();--}}
+        {{--        var dt = {_token, startEnd};--}}
+        {{--        var rows =[];--}}
+        {{--        $.ajaxSetup({--}}
+        {{--            headers: {--}}
+        {{--                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--        $.ajax({--}}
+        {{--            type:'POST',--}}
+        {{--            url:'{{route('export_to_file_csv')}}',--}}
+        {{--            data:dt,--}}
+        {{--            success:function(resultData){--}}
+        {{--                // console.log(resultData);--}}
+        {{--                 rows = resultData;--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--        let csvContent = "data:text/csv;charset=utf-8,";--}}
+
+        {{--        rows.forEach(function(rowArray) {--}}
+        {{--            let row = rowArray.join("\n");--}}
+        {{--            csvContent += row + "\n";--}}
+        {{--        });--}}
+        {{--        console.log(csvContent);--}}
+        {{--        var encodedUri = encodeURI(csvContent);--}}
+        {{--        var link = document.createElement("a");--}}
+        {{--        link.setAttribute("href", encodedUri);--}}
+        {{--        link.setAttribute("download", "my_data.csv");--}}
+        {{--        document.body.appendChild(link); // Required for FF--}}
+
+        {{--        // link.click();--}}
+        {{--    });--}}
+        {{--});--}}
+
         $(document).ready(function(){
             $('#fillter_date').click(function () {
                 let date_range = $('#date_range').val();

@@ -1037,7 +1037,7 @@ class CustomerServiceController extends Controller
         }
         return $result;
     }
-    
+
 
     public function  HistoryLog(){
         $history_log = DB::table('history_action')
