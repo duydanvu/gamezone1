@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         @yield('title_prefix', config('adminlte.title_prefix', ''))
-        @yield('title', config('adminlte.title', 'AdminLTE 3'))
-        @yield('title_postfix', config('adminlte.title_postfix', ''))
+{{--        @yield('title', config('adminlte.title', 'AdminLTE 3'))--}}
+{{--        @yield('title_postfix', config('adminlte.title_postfix', ''))--}}
     </title>
     @if(! config('adminlte.enabled_laravel_mix'))
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">

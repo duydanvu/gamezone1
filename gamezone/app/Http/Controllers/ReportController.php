@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class ReportController extends Controller
 {
@@ -655,100 +656,135 @@ class ReportController extends Controller
 
         try {
             $total = $this->getQueryDB($start, $end, '', '', 'totalReport');
+            $count_sub = 0;
+            $acc_sub = $this ->getQueryDB($start,$end,'','','countSub');
+            foreach ($total as $value){
+                foreach ($acc_sub as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_sub = $value1->count_sub;
+                        $count_sub = $count_sub + $value1->count_sub;
+                    }
+                }
+            }
+            $count_unsub_pp = 0;
+            $acc_unsub_people = $this ->getQueryDB($start,$end,'','','countUnSubPP');
+            foreach ($total as $value){
+                foreach ($acc_unsub_people as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_pp = $value1->count_sub_pp;
+                        $count_unsub_pp = $count_unsub_pp + $value1->count_sub_pp;
+                    }
+                }
+            }
+            $count_unsub_stm = 0;
+            $acc_unsub_system = $this -> getQueryDB($start,$end,'','','countUnSubST');
+            foreach ($total as $value){
+                foreach ($acc_unsub_system as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_stm = $value1->count_sub_stm;
+                        $count_unsub_stm = $count_unsub_stm + $value1->count_sub_stm;
+                    }
+                }
+            }
+            $count_psc = 0;
+            $acc_psc = $this -> getQueryDB($start,$end,'','','countPsc');
+            foreach ($total as $value){
+                foreach ($acc_psc as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_psc = $value1->count_psc;
+                        $count_psc = $count_psc + $value1->count_psc;
+                    }
+                }
+            }
+            $count_active = 0;
+            $acc_active = $this -> getQueryDB($start,$end,'','','countActive');
+            foreach ($total as $value){
+                foreach ($acc_active as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_active = $value1->count_active;
+                        $count_active = $count_active + $value1->count_active;
+                    }
+                }
+            }
+            $count_gh = 0;
+            $acc_gh = $this -> getQueryDB($start,$end,'','','countGH');
+            foreach ($total as $value){
+                foreach ($acc_gh as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_gh = $value1->count_gh;
+                        $count_gh = $count_gh + $value1->count_gh;
+                    }
+                }
+            }
+            $count_dk_sms = 0;
+            $acc_dk_sms = $this -> getQueryDB($start,$end,'','','countDkSMS');
+            foreach ($total as $value){
+                foreach ($acc_dk_sms as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_sms = $value1->count_dk_sms;
+                        $count_dk_sms = $count_dk_sms + $value1->count_dk_sms;
+                    }
+                }
+            }
+            $count_dk_wap = 0;
+            $acc_dk_wap = $this -> getQueryDB($start,$end,'','','countDkWap');
+            foreach ($total as $value){
+                foreach ($acc_dk_wap as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_wap = $value1->wap;
+                        $count_dk_wap = $count_dk_wap + $value1->wap;
+                    }
+                }
+            }
+            $count_dk_vasgate = 0;
+            $acc_dk_vasgate = $this -> getQueryDB($start,$end,'','','countDkVasgate');
+            foreach ($total as $value){
+                foreach ($acc_dk_vasgate as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_vasgate = $value1->count_sub_vasgate;
+                        $count_dk_vasgate = $count_dk_vasgate + $value1->count_sub_vasgate;
+                    }
+                }
+            }
+            $sum_acc_phone = $this -> getQueryDB($start,$end,'','','countPhone');
+            foreach ($sum_acc_phone as $value1) {
+                foreach ($total as $key => $value) {
+                    $result .= '<tr>';
+                    $result .= '<td>' . ($key + 1) . '</td>';
+                    $result .= '<td>' . $value->date . '</td>';
+                    $result .= '<td>' . $value->acc_sub . '</td>';
+                    $result .= '<td>' . $value->acc_unsub_pp . '</td>';
+                    $result .= '<td>' . $value->acc_unsub_stm . '</td>';
+                    $result .= '<td>' . $value->acc_psc . '</td>';
+                    $result .= '<td>' . $value->acc_active . '</td>';
+                    $result .= '<td>' . round(($value->acc_gh / $value1->sum) * 100, 3) . ' %</td>';
+                    $result .= '<td>' . $value->acc_dk_sms . '</td>';
+                    $result .= '<td>' . $value->acc_dk_vasgate . '</td>';
+                    $result .= '<td>' . $value->acc_dk_wap . '</td>';
+                    $result .= '<td>' . ($value->acc_dk_sms + $value->acc_dk_vasgate + $value->acc_dk_wap) . '</td>';
+                    $result .= '</tr>';
+                }
+            }
+            $result .= '<tr>';
+            $result .= '<td> Tổng </td>';
+            $result .= '<td></td>';
+            $result .= '<td>'.$count_sub.'</td>';
+            $result .= '<td>'.$count_unsub_pp.'</td>';
+            $result .= '<td>'.$count_unsub_stm.'</td>';
+            $result .= '<td>'.$count_psc.'</td>';
+            $result .= '<td>'.$count_active.'</td>';
+            $result .= '<td></td>';
+            $result .= '<td>'.$count_dk_sms.'</td>';
+            $result .= '<td>'.$count_dk_vasgate.'</td>';
+            $result .= '<td>'.$count_dk_wap.'</td>';
+            $result .= '<td></td></tr>';
         }catch (QueryException $ex){
-            $total = null;
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
         }
-        $acc_sub = $this ->getQueryDB($start,$end,'','','countSub');
-        foreach ($total as $value){
-            foreach ($acc_sub as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_sub = $value1->count_sub;
-                }
-            }
-        }
-        $acc_unsub_people = $this ->getQueryDB($start,$end,'','','countUnSubPP');
-        foreach ($total as $value){
-            foreach ($acc_unsub_people as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_pp = $value1->count_sub_pp;
-                }
-            }
-        }
-        $acc_unsub_system = $this -> getQueryDB($start,$end,'','','countUnSubST');
-        foreach ($total as $value){
-            foreach ($acc_unsub_system as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_stm = $value1->count_sub_stm;
-                }
-            }
-        }
-        $acc_psc = $this -> getQueryDB($start,$end,'','','countPsc');
-        foreach ($total as $value){
-            foreach ($acc_psc as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_psc = $value1->count_psc;
-                }
-            }
-        }
-        $acc_active = $this -> getQueryDB($start,$end,'','','countActive');
-        foreach ($total as $value){
-            foreach ($acc_active as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_active = $value1->count_active;
-                }
-            }
-        }
-        $acc_gh = $this -> getQueryDB($start,$end,'','','countGH');
-        foreach ($total as $value){
-            foreach ($acc_gh as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_gh = $value1->count_gh;
-                }
-            }
-        }
-        $acc_dk_sms = $this -> getQueryDB($start,$end,'','','countDkSMS');
-        foreach ($total as $value){
-            foreach ($acc_dk_sms as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_sms = $value1->count_dk_sms;
-                }
-            }
-        }
-        $acc_dk_wap = $this -> getQueryDB($start,$end,'','','countDkWap');
-        foreach ($total as $value){
-            foreach ($acc_dk_wap as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_wap = $value1->wap;
-                }
-            }
-        }
-        $acc_dk_vasgate = $this -> getQueryDB($start,$end,'','','countDkVasgate');
-        foreach ($total as $value){
-            foreach ($acc_dk_vasgate as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_vasgate = $value1->count_sub_vasgate;
-                }
-            }
-        }
-        $sum_acc_phone = $this -> getQueryDB($start,$end,'','','countPhone');
-        foreach ($sum_acc_phone as $value1) {
-            foreach ($total as $key => $value) {
-                $result .= '<tr>';
-                $result .= '<td>' . ($key + 1) . '</td>';
-                $result .= '<td>' . $value->date . '</td>';
-                $result .= '<td>' . $value->acc_sub . '</td>';
-                $result .= '<td>' . $value->acc_unsub_pp . '</td>';
-                $result .= '<td>' . $value->acc_unsub_stm . '</td>';
-                $result .= '<td>' . $value->acc_psc . '</td>';
-                $result .= '<td>' . $value->acc_active . '</td>';
-                $result .= '<td>' . round(($value->acc_gh / $value1->sum) * 100, 3) . ' %</td>';
-                $result .= '<td>' . $value->acc_dk_sms . '</td>';
-                $result .= '<td>' . $value->acc_dk_vasgate . '</td>';
-                $result .= '<td>' . $value->acc_dk_wap . '</td>';
-                $result .= '<td>' . ($value->acc_dk_sms + $value->acc_dk_vasgate + $value->acc_dk_wap) . '</td>';
-                $result .= '</tr>';
-            }
-        }
+
+
         return $result;
     }
 
@@ -762,97 +798,96 @@ class ReportController extends Controller
 
         try {
             $total = $this->getQueryDB($start, $end, '', '', 'totalReport');
-        }catch (QueryException $ex){
-            $total = null;
-        }
-        $acc_sub = $this ->getQueryDB($start,$end,'','','countSub');
-        foreach ($total as $value){
-            foreach ($acc_sub as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_sub = $value1->count_sub;
+            $acc_sub = $this ->getQueryDB($start,$end,'','','countSub');
+            foreach ($total as $value){
+                foreach ($acc_sub as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_sub = $value1->count_sub;
+                    }
                 }
             }
-        }
-        $acc_unsub_people = $this ->getQueryDB($start,$end,'','','countUnSubPP');
-        foreach ($total as $value){
-            foreach ($acc_unsub_people as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_pp = $value1->count_sub_pp;
+            $acc_unsub_people = $this ->getQueryDB($start,$end,'','','countUnSubPP');
+            foreach ($total as $value){
+                foreach ($acc_unsub_people as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_pp = $value1->count_sub_pp;
+                    }
                 }
             }
-        }
-        $acc_unsub_system = $this -> getQueryDB($start,$end,'','','countUnSubST');
-        foreach ($total as $value){
-            foreach ($acc_unsub_system as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_stm = $value1->count_sub_stm;
+            $acc_unsub_system = $this -> getQueryDB($start,$end,'','','countUnSubST');
+            foreach ($total as $value){
+                foreach ($acc_unsub_system as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_stm = $value1->count_sub_stm;
+                    }
                 }
             }
-        }
-        $acc_psc = $this -> getQueryDB($start,$end,'','','countPsc');
-        foreach ($total as $value){
-            foreach ($acc_psc as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_psc = $value1->count_psc;
+            $acc_psc = $this -> getQueryDB($start,$end,'','','countPsc');
+            foreach ($total as $value){
+                foreach ($acc_psc as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_psc = $value1->count_psc;
+                    }
                 }
             }
-        }
-        $acc_active = $this -> getQueryDB($start,$end,'','','countActive');
-        foreach ($total as $value){
-            foreach ($acc_active as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_active = $value1->count_active;
+            $acc_active = $this -> getQueryDB($start,$end,'','','countActive');
+            foreach ($total as $value){
+                foreach ($acc_active as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_active = $value1->count_active;
+                    }
                 }
             }
-        }
-        $acc_gh = $this -> getQueryDB($start,$end,'','','countGH');
-        foreach ($total as $value){
-            foreach ($acc_gh as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_gh = $value1->count_gh;
+            $acc_gh = $this -> getQueryDB($start,$end,'','','countGH');
+            foreach ($total as $value){
+                foreach ($acc_gh as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_gh = $value1->count_gh;
+                    }
                 }
             }
-        }
-        $acc_dk_sms = $this -> getQueryDB($start,$end,'','','countDkSMS');
-        foreach ($total as $value){
-            foreach ($acc_dk_sms as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_sms = $value1->count_dk_sms;
+            $acc_dk_sms = $this -> getQueryDB($start,$end,'','','countDkSMS');
+            foreach ($total as $value){
+                foreach ($acc_dk_sms as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_sms = $value1->count_dk_sms;
+                    }
                 }
             }
-        }
-        $acc_dk_wap = $this -> getQueryDB($start,$end,'','','countDkWap');
-        foreach ($total as $value){
-            foreach ($acc_dk_wap as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_wap = $value1->wap;
+            $acc_dk_wap = $this -> getQueryDB($start,$end,'','','countDkWap');
+            foreach ($total as $value){
+                foreach ($acc_dk_wap as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_wap = $value1->wap;
+                    }
                 }
             }
-        }
 
-        $acc_dk_vasgate = $this -> getQueryDB($start,$end,'','','countDkVasgate');
-        foreach ($total as $value){
-            foreach ($acc_dk_vasgate as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_vasgate = $value1->count_sub_vasgate;
+            $acc_dk_vasgate = $this -> getQueryDB($start,$end,'','','countDkVasgate');
+            foreach ($total as $value){
+                foreach ($acc_dk_vasgate as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_vasgate = $value1->count_sub_vasgate;
+                    }
                 }
             }
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
         }
-        $total['data'] = $total;
-        $result = $total['data']-> transform(function ($item){
+        $result = $total-> transform(function ($item){
            return (array)$item;
         })->toArray();
-//        dd($result);
         $fileCsv = fopen('../storage/app/public/report.csv', 'w+');
         foreach ($result as $k=>$line) {
             if ($k == 0) {
                 fputcsv($fileCsv, array_keys($line));
             }
-            if($k != "data"){
-                fputcsv($fileCsv, array_values($line));
-            }
+            fputcsv($fileCsv, array_values($line));
         }
-
         fclose($fileCsv);
         $file = storage_path('app\public\report.csv');
         $file1 = file_get_contents($file);

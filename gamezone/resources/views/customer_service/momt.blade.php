@@ -42,6 +42,7 @@
             <div class="row">
                 <div class="col-12 col-md-12 col-sm-12">
                     <a href=" " type="submit" class="btn btn-default" >Refresh</a>
+                    <a type="submit" id="export_data"  class="btn btn-success btn-xs offset-lg-10" style="margin: auto" >Export</a>
                     <button type="submit" id="fillter_date" class="btn btn-primary" style="float: right;">Filter</button>
                 </div>
             </div>
@@ -86,33 +87,6 @@
                                     <i class="fas fa-edit"> Gửi lại</i>
                                 </a></td>
                         </tr>
-                        {{--@if(count($value->joinDTOS) > 0)--}}
-                            {{--@foreach($value->joinDTOS as $valueDtos)--}}
-                                {{--<tr>--}}
-                                {{--<td>{{$value->groupCode}}</td>--}}
-                                {{--<td>{{$value->isdn}}</td>--}}
-                                {{--<td>{{substr($value->dateReceiveRequest,-17,8)}}, {{substr($value->dateReceiveRequest,0,10)}} </td>--}}
-                                {{--<td>{{$value->commandCode}}</td>--}}
-                                    {{--<td>{{substr($valueDtos->timerequest,-17,8)}}, {{substr($valueDtos->timerequest,0,10)}}</td>--}}
-                                    {{--<td>{{$valueDtos->content}}</td>--}}
-                                    {{--<td>Thành Công</td>--}}
-                                    {{--<td><a href="#" class="btn dropdown-item">--}}
-                                            {{--<i class="fas fa-edit"> Gửi lại</i>--}}
-                                        {{--</a></td>--}}
-                                {{--</tr>--}}
-                                {{--@endforeach--}}
-                            {{--@else--}}
-                                {{--<tr>--}}
-                                {{--<td>{{$value->groupCode}}</td>--}}
-                                {{--<td>{{$value->isdn}}</td>--}}
-                                {{--<td>{{substr($value->dateReceiveRequest,-17,8)}}, {{substr($value->dateReceiveRequest,0,10)}} </td>--}}
-                                {{--<td>{{$value->commandCode}}</td>--}}
-                                {{--<td></td>--}}
-                                {{--<td></td>--}}
-                                {{--<td></td>--}}
-                                {{--<td></td>--}}
-                                {{--</tr>--}}
-                            {{--@endif--}}
                     @endforeach
                 @else
                     <td colspan="8" style="text-align: center">
@@ -144,6 +118,16 @@
                 format: 'MM/DD/YYYY'
             }
         });
+        $('#export_data').click(function () {
+            var datetimes = $('#date_range').val();
+            datetimes = datetimes.split('/').join('.');
+            datetimes = datetimes.split(' ').join('');
+            console.log(datetimes);
+            var url = "{{ route ('export_momt_to_file_csv',['datetime' => ":datetime"])}}";
+            url = url.replace(':datetime', datetimes);
+            console.log(url);
+            window.location.href = url;
+        })
         $(document).ready(function(){
             $('#fillter_date').click(function () {
                 let date_range = $('#date_range').val();

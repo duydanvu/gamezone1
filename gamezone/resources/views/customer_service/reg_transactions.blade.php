@@ -42,6 +42,7 @@
             <div class="row">
                 <div class="col-12 col-md-12 col-sm-12">
                     <a href=" " type="submit" class="btn btn-default" >Refresh</a>
+                    <a type="submit" id="export_data"  class="btn btn-success btn-xs offset-lg-10" style="margin: auto" >Export</a>
                     <button type="submit" id="fillter_date" class="btn btn-primary" style="float: right;">Filter</button>
                 </div>
             </div>
@@ -109,6 +110,16 @@
                 format: 'MM/DD/YYYY'
             }
         });
+        $('#export_data').click(function () {
+            var datetimes = $('#date_range').val();
+            datetimes = datetimes.split('/').join('.');
+            datetimes = datetimes.split(' ').join('');
+            console.log(datetimes);
+            var url = "{{ route ('export_reg_to_file_csv',['datetime' => ":datetime"])}}";
+            url = url.replace(':datetime', datetimes);
+            console.log(url);
+            window.location.href = url;
+        })
         $(document).ready(function(){
             $('#fillter_date').click(function () {
                 let date_range = $('#date_range').val();

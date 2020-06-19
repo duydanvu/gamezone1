@@ -52,21 +52,28 @@ Route::group(['middleware' => ['web','checkLogOut']],function (){
     //Customer service
     Route::get('cussv/reg_tran','CustomerServiceController@regTransactions')->name('cus_sv_reg');
     Route::post('cussv/reg_tran/loadData/','CustomerServiceController@SearchDateTimeRegTran')->name('search_date_time_regtran');
+    Route::get('/cussv/reg_tran/export_file_csv/{datetime}','CustomerServiceController@exportRegFile')->name('export_reg_to_file_csv');
 
     Route::get('cussv/unreg_tran','CustomerServiceController@unregTransactions')->name('cus_sv_unreg');
     Route::post('cussv/unreg_tran/loadData/','CustomerServiceController@SearchDateTimeUnRegTran')->name('search_date_time_unreg_tran');
+    Route::get('/cussv/unreg_tran/export_file_csv/{datetime}','CustomerServiceController@exportUnRegFile')->name('export_unreg_to_file_csv');
 
     Route::get('cussv/momt','CustomerServiceController@moMt')->name('cus_sv_momt');
     Route::post('cussv/momt/loadData/','CustomerServiceController@SearchDateTimeMOMT')->name('search_date_time_momt');
+    Route::get('/cussv/momt/export_file_csv/{datetime}','CustomerServiceController@exportMOMTFile')->name('export_momt_to_file_csv');
+
 
     Route::get('cussv/his_acc','CustomerServiceController@historyAccount')->name('cus_sv_history');
     Route::post('cussv/his_acc/loadData/','CustomerServiceController@SearchDateTimeHisAcc')->name('search_date_time_his');
+    Route::get('/cussv/his_acc/export_file_csv/{datetime}','CustomerServiceController@exportHistoryAccFile')->name('export_hisacc_to_file_csv');
 
     Route::get('cussv/his_acc_use','CustomerServiceController@historyAccountUse')->name('cus_sv_history_use');
     Route::post('cussv/his_acc_use/loadData/','CustomerServiceController@SearchDateTimeHisAccUse')->name('search_date_time_his_use');
+    Route::get('/cussv/his_acc_use/export_file_csv/{datetime}','CustomerServiceController@exportHistoryAccUseFile')->name('export_accuse_to_file_csv');
 
     Route::get('cussv/exten_acc','CustomerServiceController@extenAcc')->name('cus_sv_exten_acc');
     Route::post('cussv/exten_acc/loadData/','CustomerServiceController@SearchDateTimeExtenAcc')->name('search_date_time_exten_acc');
+    Route::get('/cussv/his_acc_renew/export_file_csv/{datetime}','CustomerServiceController@exportEntendAccFile')->name('export_renew_to_file_csv');
 
     Route::get('cussv/history_log','CustomerServiceController@HistoryLog')->name('cus_sv_history_log');
 

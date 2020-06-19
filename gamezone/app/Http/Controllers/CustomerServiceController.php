@@ -116,8 +116,41 @@ class CustomerServiceController extends Controller
         }catch (QueryException $ex){
             $reg_tran = [];
         }
-//        $reg_tran = $this->getQueryRegTransactions("","","",$name_use->first_name);
         return view('customer_service.reg_transactions')->with('reg_tran',$reg_tran);
+    }
+    /*
+     * function export file csv
+     */
+    public function exportRegFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $reg_tran = $this->getQueryRegTransactions($start, $end, "", "");
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $reg_tran-> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/registeredTransactions.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\registeredTransactions.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
     }
     /*
      * Gọi Query để tìm kiếm các giao dịch đăng ký
@@ -192,6 +225,42 @@ class CustomerServiceController extends Controller
         }
         return view('customer_service.unreg_transactions')->with('unreg_tran',$unreg_tran);
     }
+
+    /*
+     * function export file csv
+     */
+    public function exportUnRegFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $unreg_tran = $this->getQueryUnRegTransactions($start, $end, "", '');
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $unreg_tran-> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/unRegisteredTransactions.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\unRegisteredTransactions.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
+    }
+
     /*
      * Gọi Query để tìm kiếm các giao dịch hủy
      */
@@ -272,6 +341,41 @@ class CustomerServiceController extends Controller
             $momt = [];
         }
         return view('customer_service.momt')->with('momt',$momt);
+    }
+
+    /*
+    * function export file csv
+    */
+    public function exportMOMTFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $momt = $this->getQueryMOMT($start, $end, "", '');
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $momt-> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/momt.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\momt.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
     }
     /*
      * Gọi các query tìm kiếm giao dịch MOMT
@@ -355,7 +459,40 @@ class CustomerServiceController extends Controller
 
         return view('customer_service.history_trucuoc')->with('history_acc',$history_acc);
     }
-
+    /*
+    * function export file csv
+    */
+    public function exportHistoryAccFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $history_acc = $this->getQueryHistoryAcc($start, $end, "", '');
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $history_acc-> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/historyAccount.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\historyAccount.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
+    }
     /*
      * Gọi các query để tra cứu lịch sử gói cước
      */
@@ -505,7 +642,40 @@ class CustomerServiceController extends Controller
         }
         return view('customer_service.history_acc_use')->with('history_acc_use',$history_acc);
     }
-
+    /*
+    * function export file csv
+    */
+    public function exportHistoryAccUseFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $history_acc = $this->getQueryHistoryAccUse($start, $end, "", '');
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $history_acc-> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/historyAccountUse.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\historyAccountUse.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
+    }
 
     /* Query date to database
        input
@@ -590,6 +760,40 @@ class CustomerServiceController extends Controller
             $exten_acc = [];
         }
         return view('customer_service.exten_acc')->with('exten_acc',$exten_acc);
+    }
+    /*
+    * function export file csv
+    */
+    public function exportEntendAccFile($datetime){
+        $date_range = explode( '-',$datetime);
+        $start_0 = str_replace(".","/",$date_range[0]);
+        $end_0 = str_replace(".","/",$date_range[1]);
+        $start = date("Y-m-d", strtotime($start_0));
+        $end = date("Y-m-d", strtotime($end_0));
+        try{
+            $exten_acc = $this->getHistoryRenew($start, $end, "", '');
+        }catch (QueryException $ex){
+            $notification = array(
+                'message' => 'Export fail! Please try again with time',
+                'alert-type' => 'error'
+            );
+            return Redirect::back()->with($notification);
+        }
+        $result = $exten_acc -> transform(function ($item){
+            return (array)$item;
+        })->toArray();
+        $fileCsv = fopen('../storage/app/public/renew.csv', 'w+');
+        foreach ($result as $k=>$line) {
+            if ($k == 0) {
+                fputcsv($fileCsv, array_keys($line));
+            }
+            fputcsv($fileCsv, array_values($line));
+        }
+        fclose($fileCsv);
+        $file = storage_path('app\public\renew.csv');
+        $filename=basename($file);
+        $headers = ['Content-Type'=>'application/json; charset=UTF-8','charset'=>'utf-8'];
+        return response()->download($file,$filename, $headers);
     }
     /*
      * Trả về danh sách sdt riêng biệt
@@ -786,18 +990,24 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
         $user_id_sign_in = Auth::id();
-        $name_use = DB::table('manager_user')->find($user_id_sign_in);
-        $reg_tran = $this->getQueryRegTransactions($start,$end,'','');
+        try {
+            $name_use = DB::table('manager_user')->find($user_id_sign_in);
+            $reg_tran = $this->getQueryRegTransactions($start, $end, '', '');
 
-        foreach($reg_tran as $key => $value) {
-            $result .= '<tr>';
-            $result .= '<td>' . ($key + 1) . '</td>';
-            $result .= '<td>' . $value->isdn . '</td>';
+            foreach ($reg_tran as $key => $value) {
+                $result .= '<tr>';
+                $result .= '<td>' . ($key + 1) . '</td>';
+                $result .= '<td>' . $value->isdn . '</td>';
 //            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
-            $result .= '<td>'. $value->reg_datetime.'</td>';
-            $result .= '<td>' . 'Đăng ký gói dịch vụ'. '</td>';
-            $result .= '<td>' . $value->package_code . '</td>';
-            $result .= '</tr>';
+                $result .= '<td>' . $value->reg_datetime . '</td>';
+                $result .= '<td>' . 'Đăng ký gói dịch vụ' . '</td>';
+                $result .= '<td>' . $value->package_code . '</td>';
+                $result .= '</tr>';
+            }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
         }
         return $result;
     }
@@ -810,17 +1020,23 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
-        $unreg_tran = $this->getQueryUnRegTransactions($start,$end,'','');
+        try {
+            $unreg_tran = $this->getQueryUnRegTransactions($start, $end, '', '');
 
-        foreach($unreg_tran as $key => $value) {
-            $result .= '<tr>';
-            $result .= '<td>' . ($key + 1) . '</td>';
-            $result .= '<td>' . $value->isdn . '</td>';
+            foreach ($unreg_tran as $key => $value) {
+                $result .= '<tr>';
+                $result .= '<td>' . ($key + 1) . '</td>';
+                $result .= '<td>' . $value->isdn . '</td>';
 //            $result .= '<td>' . substr($value->regDatetime,-9,8).', '.substr($value->regDatetime,0,10) . '</td>';
-            $result .= '<td>' . $value->reg_datetime. '</td>';
-            $result .= '<td> Hủy Dịch Vụ Gói</td>';
-            $result .= '<td>' . $value->package_code . '</td>';
-            $result .= '</tr>';
+                $result .= '<td>' . $value->reg_datetime . '</td>';
+                $result .= '<td> Hủy Dịch Vụ Gói</td>';
+                $result .= '<td>' . $value->package_code . '</td>';
+                $result .= '</tr>';
+            }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
         }
         return $result;
     }
@@ -834,6 +1050,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
+        try{
         $momt = $this->getQueryMOMT($start,$end,'','');
 
         foreach ($momt as $value){
@@ -859,6 +1076,11 @@ class CustomerServiceController extends Controller
                         </a></td>';
             $result .= '</tr>';
         }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
+        }
         return $result;
     }
 
@@ -870,6 +1092,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
+        try{
         $history_acc = $this->getQueryHistoryAcc($start,$end,'','');
 
         foreach ($history_acc as $value){
@@ -900,6 +1123,11 @@ class CustomerServiceController extends Controller
             $result .= '<td>' . $value->charge_price . '</td>';
             $result .= '</tr>';
         }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
+        }
         return $result;
     }
 
@@ -914,6 +1142,7 @@ class CustomerServiceController extends Controller
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
 
+        try{
         $history_acc = $this->getQueryHistoryAccUse($start,$end,'','');
 
         foreach ($history_acc as $value){
@@ -946,6 +1175,11 @@ class CustomerServiceController extends Controller
             $result .= '<td>' . $value->package_code . '</td>';
             $result .= '<td>' . $value->charge_price . '</td>';
             $result .= '</tr>';
+        }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
         }
         return $result;
     }
@@ -1020,7 +1254,7 @@ class CustomerServiceController extends Controller
         $start = date("Y-m-d", strtotime($date_range[0]));
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
-
+        try{
         $exten_acc = $this->getHistoryRenew($start,$end,"","");
 
         foreach($exten_acc as $key => $value) {
@@ -1034,6 +1268,11 @@ class CustomerServiceController extends Controller
             $result .= '<td>' . $value->channel . '</td>';
             $result .= '<td>' . $value->charge_price . '</td>';
             $result .= '</tr>';
+        }
+        }catch (QueryException $ex){
+            $result .= '<td colspan="8" style="text-align: center">
+                        <h3>Empty Data</h3>
+                        </td>';
         }
         return $result;
     }
