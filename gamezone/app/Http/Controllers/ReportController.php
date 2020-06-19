@@ -537,112 +537,125 @@ class ReportController extends Controller
     public function listReportDayAction(){
         $total_sub = 0;
         try {
-            $total = $this->getQueryDB('2019-07-01', '2019-08-31', '', '', 'totalReport');
+            $total = $this->getQueryDB('', '', '', '', 'totalReport');
+            $acc_sub = $this ->getQueryDB('','','','','countSub');
+            foreach ($total as $value){
+                foreach ($acc_sub as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_sub = $value1->count_sub;
+                        $total_sub = $total_sub + $value1->count_sub;
+                    }
+                }
+            }
+            $total_unsub_pp = 0;
+            $acc_unsub_people = $this ->getQueryDB('','','','','countUnSubPP');
+            foreach ($total as $value){
+                foreach ($acc_unsub_people as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_pp = $value1->count_sub_pp;
+                        $total_unsub_pp = $total_unsub_pp + $value1->count_sub_pp;
+                    }
+                }
+            }
+            $total_unsub_stm = 0;
+            $acc_unsub_system = $this -> getQueryDB('','','','','countUnSubST');
+            foreach ($total as $value){
+                foreach ($acc_unsub_system as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_unsub_stm = $value1->count_sub_stm;
+                        $total_unsub_stm = $total_unsub_stm + $value1->count_sub_stm;
+                    }
+                }
+            }
+            $total_psc = 0;
+            $acc_psc = $this -> getQueryDB('','','','','countPsc');
+            foreach ($total as $value){
+                foreach ($acc_psc as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_psc = $value1->count_psc;
+                        $total_psc = $total_psc + $value1->count_psc;
+                    }
+                }
+            }
+            $total_active = 0;
+            $acc_active = $this -> getQueryDB('','','','','countActive');
+            foreach ($total as $value){
+                foreach ($acc_active as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_active = $value1->count_active;
+                        $total_active = $total_active + $value1->count_active;
+                    }
+                }
+            }
+            $total_gh = 0;
+            $acc_gh = $this -> getQueryDB('','','','','countGH');
+            foreach ($total as $value){
+                foreach ($acc_gh as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_gh = $value1->count_gh;
+                        $total_gh = $total_gh + $value1->count_gh;
+                    }
+                }
+            }
+            $total_dk_sms = 0;
+            $acc_dk_sms = $this -> getQueryDB('','','','','countDkSMS');
+            foreach ($total as $value){
+                foreach ($acc_dk_sms as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_sms = $value1->count_dk_sms;
+                        $total_dk_sms = $total_dk_sms + $value1->count_dk_sms;
+                    }
+                }
+            }
+            $total_dk_wap = 0;
+            $acc_dk_wap = $this -> getQueryDB('','','','','countDkWap');
+            foreach ($total as $value){
+                foreach ($acc_dk_wap as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_wap = $value1->wap;
+                        $total_dk_wap = $total_dk_wap + $value1->wap;
+                    }
+                }
+            }
+            $total_dk_vasgate = 0;
+            $acc_dk_vasgate = $this -> getQueryDB('','','','','countDkVasgate');
+            foreach ($total as $value){
+                foreach ($acc_dk_vasgate as $value1){
+                    if($value->date === $value1->date){
+                        $value->acc_dk_vasgate = $value1->count_sub_vasgate;
+                        $total_dk_vasgate = $total_dk_vasgate + $value1->count_sub_vasgate;
+                    }
+                }
+            }
+            $sum_acc_phone = $this -> getQueryDB('','','','','countPhone');
+            return view('report.report_day')->with([
+                'total'=>$total,
+                'sum' =>$sum_acc_phone,
+                'total_sub'=>$total_sub,
+                'total_unsub_pp'=>$total_unsub_pp,
+                'total_unsub_stm'=>$total_unsub_stm,
+                'total_psc'=>$total_psc,
+                'total_active'=>$total_active,
+                'total_gh'=>$total_gh,
+                'total_dk_sms'=>$total_dk_sms,
+                'total_dk_wap'=>$total_dk_wap,
+                'total_dk_vasgate' => $total_dk_vasgate]);
         }catch (QueryException $ex){
-            $total = null;
+            $total = [];
+            return view('report.report_day')->with([
+                'total'=>$total,
+                'sum' =>1,
+                'total_sub'=>0,
+                'total_unsub_pp'=>0,
+                'total_unsub_stm'=>0,
+                'total_psc'=>0,
+                'total_active'=>0,
+                'total_gh'=>0,
+                'total_dk_sms'=>0,
+                'total_dk_wap'=>0,
+                'total_dk_vasgate' => 0
+            ]);
         }
-        $acc_sub = $this ->getQueryDB('2019-07-01','2019-08-31','','','countSub');
-        foreach ($total as $value){
-            foreach ($acc_sub as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_sub = $value1->count_sub;
-                    $total_sub = $total_sub + $value1->count_sub;
-                }
-            }
-        }
-        $total_unsub_pp = 0;
-        $acc_unsub_people = $this ->getQueryDB('2019-07-01','2019-08-31','','','countUnSubPP');
-        foreach ($total as $value){
-            foreach ($acc_unsub_people as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_pp = $value1->count_sub_pp;
-                    $total_unsub_pp = $total_unsub_pp + $value1->count_sub_pp;
-                }
-            }
-        }
-        $total_unsub_stm = 0;
-        $acc_unsub_system = $this -> getQueryDB('2019-07-01','2019-08-31','','','countUnSubST');
-        foreach ($total as $value){
-            foreach ($acc_unsub_system as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_unsub_stm = $value1->count_sub_stm;
-                    $total_unsub_stm = $total_unsub_stm + $value1->count_sub_stm;
-                }
-            }
-        }
-        $total_psc = 0;
-        $acc_psc = $this -> getQueryDB('2019-07-01','2019-08-31','','','countPsc');
-        foreach ($total as $value){
-            foreach ($acc_psc as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_psc = $value1->count_psc;
-                    $total_psc = $total_psc + $value1->count_psc;
-                }
-            }
-        }
-        $total_active = 0;
-        $acc_active = $this -> getQueryDB('2019-07-01','2019-08-31','','','countActive');
-        foreach ($total as $value){
-            foreach ($acc_active as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_active = $value1->count_active;
-                    $total_active = $total_active + $value1->count_active;
-                }
-            }
-        }
-        $total_gh = 0;
-        $acc_gh = $this -> getQueryDB('2019-07-01','2019-08-31','','','countGH');
-        foreach ($total as $value){
-            foreach ($acc_gh as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_gh = $value1->count_gh;
-                    $total_gh = $total_gh + $value1->count_gh;
-                }
-            }
-        }
-        $total_dk_sms = 0;
-        $acc_dk_sms = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkSMS');
-        foreach ($total as $value){
-            foreach ($acc_dk_sms as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_sms = $value1->count_dk_sms;
-                    $total_dk_sms = $total_dk_sms + $value1->count_dk_sms;
-                }
-            }
-        }
-        $total_dk_wap = 0;
-        $acc_dk_wap = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkWap');
-        foreach ($total as $value){
-            foreach ($acc_dk_wap as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_wap = $value1->wap;
-                    $total_dk_wap = $total_dk_wap + $value1->wap;
-                }
-            }
-        }
-        $total_dk_vasgate = 0;
-        $acc_dk_vasgate = $this -> getQueryDB('2019-07-01','2019-08-31','','','countDkVasgate');
-        foreach ($total as $value){
-            foreach ($acc_dk_vasgate as $value1){
-                if($value->date === $value1->date){
-                    $value->acc_dk_vasgate = $value1->count_sub_vasgate;
-                    $total_dk_vasgate = $total_dk_vasgate + $value1->count_sub_vasgate;
-                }
-            }
-        }
-        $sum_acc_phone = $this -> getQueryDB('2019-07-01','2019-08-31','','','countPhone');
-        return view('report.report_day')->with([
-            'total'=>$total,
-            'sum' =>$sum_acc_phone,
-            'total_sub'=>$total_sub,
-            'total_unsub_pp'=>$total_unsub_pp,
-            'total_unsub_stm'=>$total_unsub_stm,
-            'total_psc'=>$total_psc,
-            'total_active'=>$total_active,
-            'total_gh'=>$total_gh,
-            'total_dk_sms'=>$total_dk_sms,
-            'total_dk_wap'=>$total_dk_wap,
-            'total_dk_vasgate' => $total_dk_vasgate]);
     }
 
 

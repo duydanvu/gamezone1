@@ -112,7 +112,7 @@ class CustomerServiceController extends Controller
         $name_use = DB::table('manager_user')->find($user_id_sign_in);
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         try {
-            $reg_tran = $this->getQueryRegTransactions("2019-07-01", "2019-08-31", "", $name_use->first_name);
+            $reg_tran = $this->getQueryRegTransactions("", "", "", $name_use->first_name);
         }catch (QueryException $ex){
             $reg_tran = [];
         }
@@ -219,7 +219,7 @@ class CustomerServiceController extends Controller
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
         try {
-            $unreg_tran = $this->getQueryUnRegTransactions('2019-07-01', '2019-08-31', "", '');
+            $unreg_tran = $this->getQueryUnRegTransactions('', '', "", '');
         }catch (QueryException $ex){
             $unreg_tran = [];
         }
@@ -329,7 +329,7 @@ class CustomerServiceController extends Controller
         $arrdate = explode("-",$datenow);
         $datestart = $arrdate[0].'-'.$arrdate[1].'-01';
         try {
-            $momt = $this->getQueryMOMT('2019-07-01', '2019-08-31', '', '');
+            $momt = $this->getQueryMOMT('', '', '', '');
             foreach ($momt as $value) {
                 if ($value->timeaction == null) {
                     $value->result = "Không thành công";
@@ -435,7 +435,7 @@ class CustomerServiceController extends Controller
      */
     public function historyAccount(){
         try {
-            $history_acc = $this->getQueryHistoryAcc('2019-07-01', '2019-08-31', '', '');
+            $history_acc = $this->getQueryHistoryAcc('', '', '', '');
 
             foreach ($history_acc as $value) {
                 if ($value->message_send == null && $value->request != 'GH') {
@@ -617,7 +617,7 @@ class CustomerServiceController extends Controller
 
 //        $history_acc = $this->getDataHistoryAccUse();
         try {
-            $history_acc = $this->getQueryHistoryAccUse('2019-07-01', '2019-08-31', '', '');
+            $history_acc = $this->getQueryHistoryAccUse('', '', '', '');
 
             foreach ($history_acc as $value) {
                 if ($value->message_send == null && $value->request != 'GH') {
@@ -755,7 +755,7 @@ class CustomerServiceController extends Controller
         $dateend = $arrdate[0].'-'.$arrdate[1].'-01';
 //        $exten_acc = $this ->getHistoryRenew($dateend,$datenow,'','');
         try {
-            $exten_acc = $this->getHistoryRenew('2019-07-01', '2019-08-31', '', '');
+            $exten_acc = $this->getHistoryRenew('', '', '', '');
         }catch (QueryException $ex){
             $exten_acc = [];
         }
@@ -891,30 +891,34 @@ class CustomerServiceController extends Controller
      * Trả về view đăng ký / hủy dịch vụ
      */
     public  function subUnSubAcc(){
-        $subUnsub_acc_phone = $this->getQueryInforAcc('2019-07-01','2019-08-31','','','getDistinctPhone');
-        $getlistPhone = $this->getQueryInforAcc('2019-07-01','2019-08-31','','','getListPhone');
-        $result = [];
-        foreach ($subUnsub_acc_phone as $key => $value){
-            foreach ($getlistPhone as $value2) {
-                $infor_phone = $this->getListInforPhone($getlistPhone, $value->isdn);
-                $result[$key] = $infor_phone;
+        try {
+            $subUnsub_acc_phone = $this->getQueryInforAcc('', '', '', '', 'getDistinctPhone');
+            $getlistPhone = $this->getQueryInforAcc('', '', '', '', 'getListPhone');
+            $result = [];
+            foreach ($subUnsub_acc_phone as $key => $value) {
+                foreach ($getlistPhone as $value2) {
+                    $infor_phone = $this->getListInforPhone($getlistPhone, $value->isdn);
+                    $result[$key] = $infor_phone;
+                }
             }
-        }
-        foreach ($result as $value){
-            if($value->request == 'GH' ){
-                $value->tt = "Có Gói Cước";
-                $value->gh = "Có";
-            }else if($value->request == 'SUB'){
-                $value->tt = "Có Gói Cước";
-            }
+            foreach ($result as $value) {
+                if ($value->request == 'GH') {
+                    $value->tt = "Có Gói Cước";
+                    $value->gh = "Có";
+                } else if ($value->request == 'SUB') {
+                    $value->tt = "Có Gói Cước";
+                }
 
-        }
-        foreach ($result as $value){
-            if($value->request == 'GH' || $value->request == 'SUB' ){
-                $value->request = "Hủy Đăng Ký";
-            }else{
-                $value->request = "Đăng Ký";
             }
+            foreach ($result as $value) {
+                if ($value->request == 'GH' || $value->request == 'SUB') {
+                    $value->request = "Hủy Đăng Ký";
+                } else {
+                    $value->request = "Đăng Ký";
+                }
+            }
+        }catch (QueryException $ex){
+            $result = [];
         }
 //        dd($result);
         return view('customer_service.sub_unsub_acc')->with('sub_unsub',$result);
