@@ -1431,7 +1431,7 @@ class CustomerServiceController extends Controller
         $time = explode("-",$date);
         $table = 'cdr_'.$time[0].$time[1];
 
-        $createSubWeek = DB::table('cdr_201908')->insert([
+        $createSubWeek = DB::table($table)->insert([
             'isdn' => $phone,
             'request' => "SUB",
             'service_code' => null,
@@ -1497,33 +1497,33 @@ class CustomerServiceController extends Controller
         }
     }
 
-    public function userUnRegs($phone,$packageCode){
-        $data = array(
-            "ISDN" => $phone,
-            "ServiceCode" => '9129',
-            "CommandCode" => 'HUY_G',
-            "PackageCode" => $packageCode,
-            "SourceCode" => 'CP',
-            "User" => 'GAMEON',
-            "Password" => 'Gameon@132',
-        );
-        $data_string = json_encode($data);
-
-        $curl = curl_init('http://10.54.3.37:8888/cms-unregister');
-
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
-        );
-
-        $result = curl_exec($curl);
-        $dd = json_decode($result);
-        curl_close($curl);
-    }
+//    public function userUnRegs($phone,$packageCode){
+//        $data = array(
+//            "ISDN" => $phone,
+//            "ServiceCode" => '9129',
+//            "CommandCode" => 'HUY_G',
+//            "PackageCode" => $packageCode,
+//            "SourceCode" => 'CP',
+//            "User" => 'GAMEON',
+//            "Password" => 'Gameon@132',
+//        );
+//        $data_string = json_encode($data);
+//
+//        $curl = curl_init('http://10.54.3.37:8888/cms-unregister');
+//
+//        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+//        curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+//        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+//        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+//                'Content-Type: application/json',
+//                'Accept: application/json',
+//                'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU5NDE5NTE1NX0.jm9bQk97-7AYTsN8lgOixbUoG7-psPGoDMIa-L2ZIx8P3T9F_hXIYSczn-m6qEkxu9XJScAaTlGxB8IigZlPYw')
+//        );
+//
+//        $result = curl_exec($curl);
+//        $dd = json_decode($result);
+//        curl_close($curl);
+//    }
 
 
 }
