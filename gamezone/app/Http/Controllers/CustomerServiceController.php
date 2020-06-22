@@ -136,6 +136,9 @@ class CustomerServiceController extends Controller
             );
             return Redirect::back()->with($notification);
         }
+        foreach ($reg_tran as $value){
+            $value->type = "Register";
+        }
         $result = $reg_tran-> transform(function ($item){
             return (array)$item;
         })->toArray();
@@ -243,6 +246,9 @@ class CustomerServiceController extends Controller
                 'alert-type' => 'error'
             );
             return Redirect::back()->with($notification);
+        }
+        foreach ($unreg_tran as $value){
+            $value->type = "Un-Register";
         }
         $result = $unreg_tran-> transform(function ($item){
             return (array)$item;
@@ -778,6 +784,10 @@ class CustomerServiceController extends Controller
                 'alert-type' => 'error'
             );
             return Redirect::back()->with($notification);
+        }
+        foreach ($exten_acc as $value){
+            $value->type = "Renew";
+            $value->tt = "Success";
         }
         $result = $exten_acc -> transform(function ($item){
             return (array)$item;
