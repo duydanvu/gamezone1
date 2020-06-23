@@ -151,7 +151,7 @@
                             @endforeach
                         @else
                             <td colspan="8" style="text-align: center">
-                                <h3>Empty Pool Action</h3>
+                                <h3>Empty Data</h3>
                             </td>
                         @endif
 
@@ -212,5 +212,9 @@
             $(this).find(".modal-body").load(link.attr("href"));
         });
 
+        $(function () {
+            // fix table
+            $("#example1").parent().css({"overflow": "auto"});
+        });
     </script>
 @stop

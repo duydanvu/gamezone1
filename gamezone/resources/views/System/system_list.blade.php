@@ -82,7 +82,7 @@
                     @endforeach
                 @else
                     <td colspan="8" style="text-align: center">
-                        <h3>Empty Pool Action</h3>
+                        <h3>Empty Data</h3>
                     </td>
                 @endif
 
@@ -213,6 +213,19 @@
         $("#modal-member-project").on("show.bs.modal", function(e) {
             var link = $(e.relatedTarget);
             $(this).find(".modal-content").load(link.attr("href"));
+        });
+
+        $(function () {
+            // $("#example1").DataTable({
+            //     aoColumnDefs: [
+            //         {
+            //             bSortable: false,
+            //             aTargets: ['noSort']
+            //         } // Disable sorting on columns marked as so
+            //     ]
+            // });
+            // fix table
+            $("#example1").parent().css({"overflow": "auto"});
         });
 
     </script>

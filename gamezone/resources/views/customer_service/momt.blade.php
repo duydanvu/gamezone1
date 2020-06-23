@@ -90,7 +90,7 @@
                     @endforeach
                 @else
                     <td colspan="8" style="text-align: center">
-                        <h3>Empty Pool Action</h3>
+                        <h3>Empty Data</h3>
                     </td>
                 @endif
 
