@@ -18,7 +18,7 @@ class User extends Authenticatable
     protected $table = "manager_user";
     protected $primary = "id";
     protected $fillable = [
-        'login',  'password','last_name',
+        'login',  'password_hash','last_name',
     ];
     /**
      * The attributes that should be hidden for arrays.
@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password',
+        'password_hash',
     ];
 
     /**

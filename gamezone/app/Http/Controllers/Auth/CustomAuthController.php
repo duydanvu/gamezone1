@@ -36,11 +36,12 @@ class CustomAuthController extends Controller
         }
         $credentials = [
             'login' => $request['login'],
-            'password' => $request['password'],
+            'password_hash' => $request['password'],
         ];
         $password = Hash::make($request['password']);
 //        dd($password);
         $remember_me = $request->has('remember') ? true : false;
+//        dd(Auth::attempt($credentials));
         if(Auth::attempt($credentials)){
             $user = Auth::user();
             session ( [
