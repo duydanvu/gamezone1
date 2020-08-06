@@ -99,7 +99,7 @@ class ReportController extends Controller
         }
     }
 
-    public function getQueryDB($start,$end ,$phone ,$username,$getFunctionData ){
+    public function getQueryDB($start,$end  ,$phone ,$username,$getFunctionData ){
         date_default_timezone_set('Asia/Ho_Chi_Minh');
         $datenow = date('Y-m-d');
         $arrdate = explode("-",$datenow);
@@ -109,10 +109,15 @@ class ReportController extends Controller
         }else{
             $table = $this->table_name($dateend,$datenow,'cdr_');
         }
-        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($start,0,4)) {
-            $result_acc = $this->$getFunctionData($table, $start, $end, null, 1);
+        if (substr($start,5,2) == substr($end,5,2) && substr($start,0,4)== substr($end,0,4)) {
+            if($start != null && $end != null){
+                $result_acc = $this->$getFunctionData($table, $start, $end, null, 1);
+            }else{
+                $result_acc = $this->$getFunctionData($table, $dateend, $datenow, null, 1);
+            }
         }
         else {
+
             $result_acc1 = $this->$getFunctionData($table[0], $start, $end, null,2);
             for ($i = 1; $i < sizeof($table); $i++) {
                 $result_acc = $this->$getFunctionData($table[$i], $start, $end, $result_acc1,3);
@@ -134,6 +139,7 @@ class ReportController extends Controller
                 -> addSelect(DB::raw("'0' as acc_dk_sms"))
                 -> addSelect(DB::raw("'0' as acc_dk_wap"))
                 -> addSelect(DB::raw("'0' as acc_dk_vasgate"))
+                -> addSelect(DB::raw("'0' as revenue_day"))
                 -> whereNotNull('reg_datetime')
                 -> whereBetween('reg_datetime', [$start, $end])
                 -> groupBy('reg_datetime')
@@ -151,6 +157,7 @@ class ReportController extends Controller
                 -> addSelect(DB::raw("'0' as acc_dk_sms"))
                 -> addSelect(DB::raw("'0' as acc_dk_wap"))
                 -> addSelect(DB::raw("'0' as acc_dk_vasgate"))
+                -> addSelect(DB::raw("'0' as revenue_day"))
                 -> whereNotNull('reg_datetime')
                 -> whereBetween('reg_datetime', [$start, $end])
                 -> groupBy('reg_datetime');
@@ -167,12 +174,41 @@ class ReportController extends Controller
                 -> addSelect(DB::raw("'0' as acc_dk_sms"))
                 -> addSelect(DB::raw("'0' as acc_dk_wap"))
                 -> addSelect(DB::raw("'0' as acc_dk_vasgate"))
+                -> addSelect(DB::raw("'0' as revenue_day"))
                 -> whereNotNull('reg_datetime')
                 -> whereBetween('reg_datetime', [$start, $end])
                 -> groupBy('reg_datetime')
                 -> union($total_0)
                 -> get();
             return $total;
+        }
+    }
+
+    public function revenueDay($table, $start,$end,$revenue_0,$index){
+        if($index == 1) {
+            $revenue = DB:: table($table)
+                ->select(DB::raw('DISTINCT DATE(reg_datetime) as date, SUM(charge_price) as revenue_day'))
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->groupBy('date')
+                ->get();
+            return $revenue;
+        }elseif ($index == 2){
+            $revenue = DB:: table($table)
+                ->select(DB::raw('DISTINCT DATE(reg_datetime) as date, SUM(charge_price) as  revenue_day'))
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->groupBy('date');
+            return $revenue;
+        }else{
+            $revenue = DB:: table($table)
+                ->select(DB::raw('DISTINCT DATE(reg_datetime) as date, SUM(charge_price) as  revenue_day'))
+                ->whereNotNull('reg_datetime')
+                ->whereBetween('reg_datetime', [$start, $end])
+                ->groupBy('date')
+                ->union($revenue_0)
+                ->get();
+            return $revenue;
         }
     }
 
@@ -505,12 +541,16 @@ class ReportController extends Controller
 
     public function countPhone($table,$start,$end,$countPhone_0,$index){
         if($index == 1){
+            $totalNumber = 0;
             $sum_acc_phone = DB::table($table)
                 -> select(DB::raw('COUNT(DISTINCT isdn) as sum'))
                 -> whereBetween('reg_datetime', [$start, $end])
                 -> whereNotNull('isdn')
                 -> get();
-            return $sum_acc_phone;
+            foreach ($sum_acc_phone as $value){
+                $totalNumber = $value-> sum;
+            }
+            return $totalNumber;
         }elseif ($index == 2){
             $sum_acc_phone = DB::table($table)
             -> select(DB::raw('COUNT(DISTINCT isdn) as sum'))
@@ -628,6 +668,16 @@ class ReportController extends Controller
                 }
             }
             $sum_acc_phone = $this -> getQueryDB('','','','','countPhone');
+            $total_revenue_day = 0;
+            $revenue_day = $this -> getQueryDB('','','','','revenueDay');
+            foreach ($total as $value){
+                foreach ($revenue_day as $value1){
+                    if($value->date === $value1->date){
+                        $value->revenue_day = $value1->revenue_day;
+                        $total_revenue_day = $total_revenue_day + $value1->revenue_day;
+                    }
+                }
+            }
             return view('report.report_day')->with([
                 'total'=>$total,
                 'sum' =>$sum_acc_phone,
@@ -639,7 +689,9 @@ class ReportController extends Controller
                 'total_gh'=>$total_gh,
                 'total_dk_sms'=>$total_dk_sms,
                 'total_dk_wap'=>$total_dk_wap,
-                'total_dk_vasgate' => $total_dk_vasgate]);
+                'total_dk_vasgate' => $total_dk_vasgate,
+                'total_revenue_day' => $total_revenue_day]);
+
         }catch (QueryException $ex){
             $total = [];
             return view('report.report_day')->with([
@@ -653,7 +705,8 @@ class ReportController extends Controller
                 'total_gh'=>0,
                 'total_dk_sms'=>0,
                 'total_dk_wap'=>0,
-                'total_dk_vasgate' => 0
+                'total_dk_vasgate' => 0,
+                'total_revenue_day' => 0
             ]);
         }
     }
@@ -666,7 +719,6 @@ class ReportController extends Controller
         $start = date("Y-m-d", strtotime($date_range[0]));
         $end = date("Y-m-d", strtotime($date_range[1]));
         $result = null;
-
         try {
             $total = $this->getQueryDB($start, $end, '', '', 'totalReport');
             $count_sub = 0;
@@ -759,8 +811,18 @@ class ReportController extends Controller
                     }
                 }
             }
+            $total_revenue_day = 0;
+            $revenue_day = $this -> getQueryDB($start,$end,'','','revenueDay');
+            foreach ($total as $value){
+                foreach ($revenue_day as $value1){
+                    if($value->date === $value1->date){
+                        $value->revenue_day = $value1->revenue_day;
+                        $total_revenue_day = $total_revenue_day + $value1->revenue_day;
+                    }
+                }
+            }
             $sum_acc_phone = $this -> getQueryDB($start,$end,'','','countPhone');
-            foreach ($sum_acc_phone as $value1) {
+
                 foreach ($total as $key => $value) {
                     $result .= '<tr>';
                     $result .= '<td>' . ($key + 1) . '</td>';
@@ -770,14 +832,14 @@ class ReportController extends Controller
                     $result .= '<td>' . $value->acc_unsub_stm . '</td>';
                     $result .= '<td>' . $value->acc_psc . '</td>';
                     $result .= '<td>' . $value->acc_active . '</td>';
-                    $result .= '<td>' . round(($value->acc_gh / $value1->sum) * 100, 3) . ' %</td>';
+                    $result .= '<td>' . round(($value->acc_gh / $sum_acc_phone) * 100, 3) . ' %</td>';
                     $result .= '<td>' . $value->acc_dk_sms . '</td>';
                     $result .= '<td>' . $value->acc_dk_vasgate . '</td>';
                     $result .= '<td>' . $value->acc_dk_wap . '</td>';
                     $result .= '<td>' . ($value->acc_dk_sms + $value->acc_dk_vasgate + $value->acc_dk_wap) . '</td>';
+                    $result .= '<td>' . $value->revenue_day . '</td>';
                     $result .= '</tr>';
                 }
-            }
             $result .= '<tr>';
             $result .= '<td> Tổng </td>';
             $result .= '<td></td>';
@@ -790,14 +852,13 @@ class ReportController extends Controller
             $result .= '<td>'.$count_dk_sms.'</td>';
             $result .= '<td>'.$count_dk_vasgate.'</td>';
             $result .= '<td>'.$count_dk_wap.'</td>';
-            $result .= '<td></td></tr>';
+            $result .= '<td></td>';
+            $result .= '<td>'.$total_revenue_day.'</td></tr>';
         }catch (QueryException $ex){
             $result .= '<td colspan="8" style="text-align: center">
                         <h3>Empty Data</h3>
                         </td>';
         }
-
-
         return $result;
     }
 
@@ -881,6 +942,14 @@ class ReportController extends Controller
                 foreach ($acc_dk_vasgate as $value1){
                     if($value->date === $value1->date){
                         $value->acc_dk_vasgate = $value1->count_sub_vasgate;
+                    }
+                }
+            }
+            $revenue_day = $this -> getQueryDB($start,$end,'','','revenueDay');
+            foreach ($total as $value){
+                foreach ($revenue_day as $value1){
+                    if($value->date === $value1->date){
+                        $value->revenue_day = $value1->revenue_day;
                     }
                 }
             }

@@ -903,15 +903,17 @@ class CustomerServiceController extends Controller
      * Trả về view đăng ký / hủy dịch vụ
      */
     public  function subUnSubAcc(){
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $datenow = date('Y-m-d');
+        $arrdate = explode("-",$datenow);
+        $start = $arrdate[0].'-'.($arrdate[1]).'-01';
         try {
-            $subUnsub_acc_phone = $this->getQueryInforAcc('', '', '', '', 'getDistinctPhone');
-            $getlistPhone = $this->getQueryInforAcc('', '', '', '', 'getListPhone');
+            $subUnsub_acc_phone = $this->getQueryInforAcc($start, $datenow, '', '', 'getDistinctPhone');
+            $getlistPhone = $this->getQueryInforAcc($start, $datenow, '', '', 'getListPhone');
             $result = [];
             foreach ($subUnsub_acc_phone as $key => $value) {
-                foreach ($getlistPhone as $value2) {
-                    $infor_phone = $this->getListInforPhone($getlistPhone, $value->isdn);
-                    $result[$key] = $infor_phone;
-                }
+                $infor_phone = $getlistPhone->where('isdn','=',$value->isdn)->first();
+                $result[$key] = $infor_phone;
             }
             foreach ($result as $value) {
                 if ($value->request == 'GH') {

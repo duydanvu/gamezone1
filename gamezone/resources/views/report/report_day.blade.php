@@ -69,6 +69,7 @@
                     <th rowspan="2">Thuê Bao Active</th>
                     <th rowspan="2">Tỷ lệ Gia Hạn (%)</th>
                     <th colspan="4" style="text-align: center">Đăng Ký</th>
+                    <th rowspan="2" style="text-align: center">Doanh Thu</th>
                 </tr>
                 <tr>
                     <th>Hệ Thống Hủy</th>
@@ -93,6 +94,7 @@
                     <td>{{$total_dk_vasgate}}</td>
                     <td>{{$total_dk_wap}}</td>
                     <td></td>
+                    <td>{{$total_revenue_day}}</td>
                 </tr>
                 @if ( count($total) > 0)
                         @foreach($total as $key => $value)
@@ -109,6 +111,7 @@
                             <td>{{$value->acc_dk_vasgate}}</td>
                             <td>{{$value->acc_dk_wap}}</td>
                             <td>{{$value->acc_dk_sms + $value->acc_dk_vasgate + $value->acc_dk_wap}}</td>
+                            <td>{{$value->revenue_day}}</td>
                         </tr>
                         @endforeach
                 @else

@@ -64,7 +64,7 @@ class SystemController extends Controller
         $dataupdate = DB::table('manager_user')->where('id','=',$request->user_id)
                     ->update([
                         'login'=>$request->txtNumber,
-                        'password'=>$password,
+                        'password_hash'=>$password,
                         'first_name'=>$request->txtFName,
                         'last_name'=>$request->txtLName,
                         'email'=>$request->txtEmail,
@@ -118,7 +118,7 @@ class SystemController extends Controller
         try {
             $create_db = DB::table('manager_user')->insert([
                 'login' => $request['txtName'],
-                'password' => Hash::make($request['txtPassword']),
+                'password_hash' => Hash::make($request['txtPassword']),
                 'first_name' => $request['txtFName'],
                 'last_name' => $request['txtLName'],
                 'email' => $request['txtEmail'],
@@ -144,6 +144,7 @@ class SystemController extends Controller
      * xóa tài khản đăng nhập theo id
      */
     public function deleteUseView($id){
+        $data_role = DB::table('manager_user_authority')->where('user_id',$id)->delete();
         $data = DB::table('manager_user')
                 ->delete($id);
         if($data = 1){
